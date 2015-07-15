@@ -1,0 +1,19 @@
+{
+    "name": "phrodo/base",
+    "description": "Phrodo base",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Guido van Biemen",
+            "email": "guidovanbiemen@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.4.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Phrodo\\Base\\": "classes/"
+        }
+    }
+}

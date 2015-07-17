@@ -59,7 +59,7 @@ class Container implements ContainerContract
     public function __construct(DispatchContract $dispatch = null)
     {
         $this->dispatch = $dispatch ?: new Dispatch($this);
-        $this->dispatch->withObject($this);
+        $this->dispatch->withObject($this)->withArgumentDetection();
 
         $this->instances[ContainerContract::class] = $this;
     }

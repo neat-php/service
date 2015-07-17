@@ -38,6 +38,13 @@ class Dispatch implements DispatchContract
     protected $method = '__invoke';
 
     /**
+     * Detect arguments?
+     *
+     * @var bool
+     */
+    protected $detectArguments = false;
+
+    /**
      * Constructor
      *
      * @param ContainerContract $container Used to fetch arguments (optional)
@@ -87,6 +94,18 @@ class Dispatch implements DispatchContract
     }
 
     /**
+     * Enable argument detection
+     *
+     * @return $this
+     */
+    public function withArgumentDetection()
+    {
+        $this->detectArguments = true;
+
+        return $this;
+    }
+
+    /**
      * Dispatch to constructor from given class
      *
      * @param string $class
@@ -96,7 +115,9 @@ class Dispatch implements DispatchContract
     public function construct($class, array $arguments = null)
     {
         $reflection = new \ReflectionClass($class);
-        $arguments = $this->getArguments($reflection->getConstructor()->getParameters());
+        if ($this->detectArguments) {
+            $arguments = $this->getArguments($reflection->getConstructor()->getParameters());
+        }
 
         return $reflection->newInstanceArgs($arguments);
     }
@@ -110,9 +131,11 @@ class Dispatch implements DispatchContract
      */
     public function to($closure, array $arguments = null)
     {
-        $callable   = $this->getCallable($closure);
-        $reflection = $this->getCallableReflection($callable);
-        $arguments  = $this->getArguments($reflection->getParameters());
+        $callable = $this->getCallable($closure);
+        if ($this->detectArguments) {
+            $reflection = $this->getCallableReflection($callable);
+            $arguments  = $this->getArguments($reflection->getParameters());
+        }
 
         return call_user_func_array($callable, $arguments);
     }

@@ -42,7 +42,7 @@ class Dispatch implements DispatchContract
      *
      * @param ContainerContract $container Used to fetch arguments (optional)
      */
-    public function __construct(ContainerContract $container)
+    public function __construct(ContainerContract $container = null)
     {
         $this->container = $container;
     }
@@ -176,6 +176,9 @@ class Dispatch implements DispatchContract
 
             return [$this->getObject($class), $method];
         }
+        if (strpos($closure, '::') !== false) {
+            return explode('::', $closure);
+        }
         if ($this->object) {
             return [$this->object, $closure];
         }
@@ -213,9 +216,6 @@ class Dispatch implements DispatchContract
      */
     protected function getCallableReflection($callable)
     {
-        if (is_string($callable) && strpos($callable, '::') !== false) {
-            $callable = explode('::', $callable);
-        }
         if (is_array($callable)) {
             return new \ReflectionMethod($callable[0], $callable[1]);
         }

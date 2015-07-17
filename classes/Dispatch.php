@@ -115,8 +115,8 @@ class Dispatch implements DispatchContract
     public function construct($class, array $arguments = null)
     {
         $reflection = new \ReflectionClass($class);
-        if ($this->detectArguments) {
-            $arguments = $this->getArguments($reflection->getConstructor()->getParameters());
+        if ($arguments === null && $this->detectArguments) {
+            $arguments = $this->getArguments($reflection->getConstructor());
         }
 
         return $reflection->newInstanceArgs($arguments);
@@ -132,9 +132,8 @@ class Dispatch implements DispatchContract
     public function to($closure, array $arguments = null)
     {
         $callable = $this->getCallable($closure);
-        if ($this->detectArguments) {
-            $reflection = $this->getCallableReflection($callable);
-            $arguments  = $this->getArguments($reflection->getParameters());
+        if ($arguments === null && $this->detectArguments) {
+            $arguments = $this->getArguments($this->getCallableReflection($callable));
         }
 
         return call_user_func_array($callable, $arguments);
@@ -158,20 +157,19 @@ class Dispatch implements DispatchContract
     }
 
     /**
-     * Get arguments for reflection parameters
+     * Get arguments for reflected function or method
      *
-     * @param \ReflectionParameter[] $parameters
+     * @param \ReflectionFunctionAbstract $reflection
      * @return array
      */
-    protected function getArguments($parameters)
+    protected function getArguments($reflection)
     {
         $arguments = [];
-        foreach ($parameters as $parameter) {
-            $class = $parameter->getClass()->getName();
-            if ($class && $this->container && $this->container->has($class)) {
-                $arguments[] = $this->container->get($class);
-            } else {
-                $arguments[] = null;
+        foreach ($reflection->getParameters() as $parameter) {
+            if ($this->container && $parameter->getClass()) {
+                $arguments[] = $this->container->get($parameter->getClass()->name);
+            } elseif ($parameter->isDefaultValueAvailable()) {
+                $arguments[] = $parameter->getDefaultValue();
             }
         }
 

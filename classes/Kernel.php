@@ -1,6 +1,6 @@
 <?php namespace Phrodo\Base;
 
-use \Phrodo\Contract\Base\Container as ContainerContract;
+use \Phrodo\Contract\Base\Dispatch as DispatchContract;
 use \Phrodo\Contract\Base\Kernel as KernelContract;
 
 /**
@@ -12,9 +12,9 @@ abstract class Kernel implements KernelContract
     /**
      * Container
      *
-     * @var ContainerContract
+     * @var DispatchContract
      */
-    protected $container;
+    protected $dispatch;
 
     /**
      * Bootstrappers
@@ -33,11 +33,12 @@ abstract class Kernel implements KernelContract
     /**
      * Constructor
      *
-     * @param ContainerContract $container
+     * @param DispatchContract $dispatch
      */
-    public function __construct(ContainerContract $container)
+    public function __construct(DispatchContract $dispatch)
     {
-        $this->container = $container;
+        $this->dispatch = $dispatch;
+        $this->dispatch->withObject($this);
     }
 
     /**
@@ -45,9 +46,7 @@ abstract class Kernel implements KernelContract
      */
     public function bootstrap()
     {
-        foreach ($this->bootstrappers as $bootstrapper) {
-            $this->container->call($bootstrapper, $this);
-        }
+        $this->dispatch->all($this->bootstrappers);
     }
 
     /**
@@ -60,9 +59,7 @@ abstract class Kernel implements KernelContract
      */
     public function terminate()
     {
-        foreach ($this->terminators as $terminator) {
-            $this->container->call($terminator, $this);
-        }
+        $this->dispatch->all($this->terminators);
     }
 
 }

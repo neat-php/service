@@ -1,9 +1,12 @@
 <?php namespace Phrodo\Base;
 
+use Phrodo\Contract\Base\Container as ContainerContract;
+use Phrodo\Contract\Base\Dispatch as DispatchContract;
+
 /**
  * Service Container class
  */
-class Container implements \Phrodo\Contract\Base\Container
+class Container implements ContainerContract
 {
 
     /**
@@ -42,105 +45,23 @@ class Container implements \Phrodo\Contract\Base\Container
     protected $aliases = [];
 
     /**
-     * Create a new class instance
+     * Dispatcher
      *
-     * Arguments will be resolved automatically
-     *
-     * @param string $class
-     * @return object
+     * @var DispatchContract
      */
-    function create($class)
-    {
-        $reflection = new \ReflectionClass($class);
-        $arguments = $this->getArguments($reflection->getConstructor()->getParameters());
-
-        return $reflection->newInstanceArgs($arguments);
-    }
+    protected $dispatch;
 
     /**
-     * Call a closure
+     * Constructor
      *
-     * Arguments will be resolved automatically
-     *
-     * @param callable|string $closure
-     * @param object          $defaultObject
-     * @param string          $defaultMethod
-     * @return mixed
+     * @param DispatchContract $dispatch
      */
-    function call($closure, $defaultObject = null, $defaultMethod = null)
+    public function __construct(DispatchContract $dispatch = null)
     {
-        $callable   = $this->getCallable($closure, $defaultObject, $defaultMethod);
-        $reflection = $this->getCallableReflection($callable);
-        $arguments  = $this->getArguments($reflection->getParameters());
+        $this->dispatch = $dispatch ?: new Dispatch($this);
+        $this->dispatch->withObject($this);
 
-        return call_user_func_array($callable, $arguments);
-    }
-
-    /**
-     * Get arguments for reflection parameters
-     *
-     * @param \ReflectionParameter[] $parameters
-     * @return array
-     */
-    protected function getArguments($parameters)
-    {
-        $arguments = [];
-        foreach ($parameters as $parameter) {
-            $class = $parameter->getClass()->getName();
-            if (!$class || !$this->has($class)) {
-                $arguments[] = null;
-            } else {
-                $arguments[] = $this->get($class);
-            }
-        }
-
-        return $arguments;
-    }
-
-    /**
-     * Get callable
-     *
-     * Converts "Class@method" notation to a valid callable
-     *
-     * @param callable|string $closure
-     * @param object          $defaultObject
-     * @param string          $defaultMethod
-     * @return callable
-     */
-    protected function getCallable($closure, $defaultObject = null, $defaultMethod = null)
-    {
-        if (is_string($closure) && strpos($closure, '@') !== false) {
-            list($object, $method) = explode('@', $closure);
-            if ($object) {
-                $object = $this->get($object);
-            } else {
-                $object = $defaultObject ?: $this;
-            }
-            if (!$method) {
-                $method = $defaultMethod ?: '__invoke';
-            }
-            return [$object, $method];
-        }
-
-        return $closure;
-    }
-
-    /**
-     * Get callable reflection
-     *
-     * @param callable $callable
-     * @return \ReflectionFunction|\ReflectionMethod
-     */
-    protected function getCallableReflection($callable)
-    {
-        if (is_string($callable) && strpos($callable, '::') !== false) {
-            $callable = explode('::', $callable);
-        }
-        if (is_array($callable)) {
-            return new \ReflectionMethod($callable[0], $callable[1]);
-        }
-
-        return new \ReflectionFunction($callable);
+        $this->instances[ContainerContract::class] = $this;
     }
 
     /**
@@ -151,7 +72,7 @@ class Container implements \Phrodo\Contract\Base\Container
      * @param string $service
      * @return bool
      */
-    function has($service)
+    public function has($service)
     {
         $abstract = $this->resolve($service);
 
@@ -168,7 +89,7 @@ class Container implements \Phrodo\Contract\Base\Container
      * @param string $service
      * @return object
      */
-    function get($service)
+    public function get($service)
     {
         $abstract = $this->resolve($service);
         if (isset($this->instances[$abstract])) {
@@ -177,11 +98,11 @@ class Container implements \Phrodo\Contract\Base\Container
 
         $instance = null;
         if (isset($this->classes[$abstract])) {
-            $instance = $this->create($this->classes[$abstract]);
+            $instance = $this->dispatch->construct($this->classes[$abstract]);
         } elseif (isset($this->factories[$abstract])) {
-            $instance = $this->call($this->factories[$abstract]);
+            $instance = $this->dispatch->to($this->factories[$abstract]);
         } elseif (class_exists($abstract)) {
-            $instance = $this->create($abstract);
+            $instance = $this->dispatch->construct($abstract);
         }
 
         if (isset($this->shared[$abstract]) && $this->shared[$abstract]) {
@@ -202,7 +123,7 @@ class Container implements \Phrodo\Contract\Base\Container
      * @param object|callable|string $concrete
      * @param bool                   $shared
      */
-    function set($service, $concrete, $shared = false)
+    public function set($service, $concrete, $shared = false)
     {
         $abstract = $this->resolve($service);
 
@@ -223,7 +144,7 @@ class Container implements \Phrodo\Contract\Base\Container
      * @param string $alias
      * @param string $abstract
      */
-    function alias($alias, $abstract)
+    public function alias($alias, $abstract)
     {
         $this->aliases[$alias] = $abstract;
     }
@@ -234,7 +155,7 @@ class Container implements \Phrodo\Contract\Base\Container
      * @param string $alias
      * @return string
      */
-    function resolve($alias)
+    public function resolve($alias)
     {
         if (isset($this->aliases[$alias])) {
             return $this->aliases[$alias];

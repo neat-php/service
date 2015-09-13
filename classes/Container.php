@@ -1,7 +1,7 @@
-<?php namespace Phrodo\Base;
+<?php namespace Phrodo\Application;
 
-use Phrodo\Contract\Base\Container as ContainerContract;
-use Phrodo\Contract\Base\Dispatch as DispatchContract;
+use Some\Application\Container as ContainerContract;
+use Some\Application\Dispatcher as DispatcherContract;
 
 /**
  * Service Container class
@@ -47,16 +47,16 @@ class Container implements ContainerContract
     /**
      * Dispatcher
      *
-     * @var DispatchContract
+     * @var DispatcherContract
      */
     protected $dispatch;
 
     /**
      * Constructor
      *
-     * @param DispatchContract $dispatch
+     * @param DispatcherContract $dispatch
      */
-    public function __construct(DispatchContract $dispatch = null)
+    public function __construct(DispatcherContract $dispatch = null)
     {
         $this->dispatch = $dispatch ?: new Dispatch($this);
         $this->dispatch->withObject($this)->withArgumentDetection();

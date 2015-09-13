@@ -11,7 +11,8 @@ your application services.
 
 Getting started
 ---------------
-To install this package, simply use [Composer](http://getcomposer.org):
+To install this package, simply issue [composer](https://getcomposer.org) on the
+command line:
 ```
 composer require phrodo/application
 ```

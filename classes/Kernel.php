@@ -1,7 +1,7 @@
-<?php namespace Phrodo\Base;
+<?php namespace Phrodo\Application;
 
-use \Phrodo\Contract\Base\Dispatch as DispatchContract;
-use \Phrodo\Contract\Base\Kernel as KernelContract;
+use Some\Application\Dispatcher as DispatcherContract;
+use Some\Application\Kernel as KernelContract;
 
 /**
  * Kernel class
@@ -10,9 +10,9 @@ abstract class Kernel implements KernelContract
 {
 
     /**
-     * Container
+     * Dispatcher
      *
-     * @var DispatchContract
+     * @var DispatcherContract
      */
     protected $dispatch;
 
@@ -33,9 +33,9 @@ abstract class Kernel implements KernelContract
     /**
      * Constructor
      *
-     * @param DispatchContract $dispatch
+     * @param DispatcherContract $dispatch
      */
-    public function __construct(DispatchContract $dispatch)
+    public function __construct(DispatcherContract $dispatch)
     {
         $this->dispatch = $dispatch;
         $this->dispatch->withObject($this);

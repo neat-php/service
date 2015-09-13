@@ -1,12 +1,12 @@
-<?php namespace Phrodo\Base;
+<?php namespace Phrodo\Application;
 
-use Phrodo\Contract\Base\Container as ContainerContract;
-use Phrodo\Contract\Base\Dispatch as DispatchContract;
+use Some\Application\Container as ContainerContract;
+use Some\Application\Dispatcher as DispatcherContract;
 
 /**
  * Dispatch class
  */
-class Dispatch implements DispatchContract
+class Dispatch implements DispatcherContract
 {
 
     /**

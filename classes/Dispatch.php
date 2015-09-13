@@ -8,7 +8,6 @@ use Some\Application\Dispatcher as DispatcherContract;
  */
 class Dispatch implements DispatcherContract
 {
-
     /**
      * Container
      *
@@ -52,6 +51,24 @@ class Dispatch implements DispatcherContract
     public function __construct(ContainerContract $container = null)
     {
         $this->container = $container;
+    }
+
+    /**
+     * Call the given callable
+     *
+     * @param callable $closure
+     * @return object
+     */
+    public function call($closure)
+    {
+        $callable = $this->getCallable($closure);
+        if ($this->detectArguments) {
+            $arguments = $this->getArguments($this->getCallableReflection($callable));
+        } else {
+            $arguments = [];
+        }
+
+        return call_user_func_array($callable, $arguments);
     }
 
     /**
@@ -109,51 +126,18 @@ class Dispatch implements DispatcherContract
      * Dispatch to constructor from given class
      *
      * @param string $class
-     * @param array  $arguments
      * @return object
      */
-    public function construct($class, array $arguments = null)
+    public function make($class)
     {
         $reflection = new \ReflectionClass($class);
-        if ($arguments === null && $this->detectArguments) {
+        if ($this->detectArguments) {
             $arguments = $this->getArguments($reflection->getConstructor());
+        } else {
+            $arguments = [];
         }
 
         return $reflection->newInstanceArgs($arguments);
-    }
-
-    /**
-     * Dispatch to given closure
-     *
-     * @param callable|string $closure
-     * @param array           $arguments
-     * @return mixed
-     */
-    public function to($closure, array $arguments = null)
-    {
-        $callable = $this->getCallable($closure);
-        if ($arguments === null && $this->detectArguments) {
-            $arguments = $this->getArguments($this->getCallableReflection($callable));
-        }
-
-        return call_user_func_array($callable, $arguments);
-    }
-
-    /**
-     * Dispatch to all given closures
-     *
-     * @param array $closures
-     * @param array $arguments
-     * @return array
-     */
-    public function all(array $closures, array $arguments = null)
-    {
-        $results = [];
-        foreach ($closures as $key => $closure) {
-            $results[$key] = $this->to($closure, $arguments);
-        }
-
-        return $results;
     }
 
     /**
@@ -225,7 +209,7 @@ class Dispatch implements DispatcherContract
         if ($this->container) {
             return $this->container->get($class);
         } else {
-            return $this->construct($class);
+            return $this->make($class);
         }
     }
 
@@ -243,5 +227,4 @@ class Dispatch implements DispatcherContract
 
         return new \ReflectionFunction($callable);
     }
-
 }

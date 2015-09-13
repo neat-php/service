@@ -8,7 +8,6 @@ use Some\Application\Dispatcher as DispatcherContract;
  */
 class Container implements ContainerContract
 {
-
     /**
      * Instances
      *
@@ -98,11 +97,11 @@ class Container implements ContainerContract
 
         $instance = null;
         if (isset($this->classes[$abstract])) {
-            $instance = $this->dispatch->construct($this->classes[$abstract]);
+            $instance = $this->dispatch->make($this->classes[$abstract]);
         } elseif (isset($this->factories[$abstract])) {
-            $instance = $this->dispatch->to($this->factories[$abstract]);
+            $instance = $this->dispatch->call($this->factories[$abstract]);
         } elseif (class_exists($abstract)) {
-            $instance = $this->dispatch->construct($abstract);
+            $instance = $this->dispatch->make($abstract);
         }
 
         if (isset($this->shared[$abstract]) && $this->shared[$abstract]) {
@@ -163,5 +162,4 @@ class Container implements ContainerContract
 
         return $alias;
     }
-
 }

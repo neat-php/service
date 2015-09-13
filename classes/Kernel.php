@@ -8,7 +8,6 @@ use Some\Application\Kernel as KernelContract;
  */
 abstract class Kernel implements KernelContract
 {
-
     /**
      * Dispatcher
      *
@@ -46,7 +45,9 @@ abstract class Kernel implements KernelContract
      */
     public function bootstrap()
     {
-        $this->dispatch->all($this->bootstrappers);
+        foreach ($this->bootstrappers as $bootstrapper) {
+            $this->dispatch->call($bootstrapper);
+        }
     }
 
     /**
@@ -59,7 +60,8 @@ abstract class Kernel implements KernelContract
      */
     public function terminate()
     {
-        $this->dispatch->all($this->terminators);
+        foreach ($this->terminators as $terminator) {
+            $this->dispatch->call($terminator);
+        }
     }
-
 }

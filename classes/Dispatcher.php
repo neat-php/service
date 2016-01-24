@@ -208,9 +208,9 @@ class Dispatcher implements DispatcherContract
 
         if ($this->container) {
             return $this->container->get($class);
-        } else {
-            return $this->make($class);
         }
+
+        return $this->make($class);
     }
 
     /**

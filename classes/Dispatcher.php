@@ -4,9 +4,9 @@ use Some\Application\Container as ContainerContract;
 use Some\Application\Dispatcher as DispatcherContract;
 
 /**
- * Dispatch class
+ * Dispatcher class
  */
-class Dispatch implements DispatcherContract
+class Dispatcher implements DispatcherContract
 {
     /**
      * Container

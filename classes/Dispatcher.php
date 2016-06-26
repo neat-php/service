@@ -1,17 +1,14 @@
 <?php namespace Phrodo\Application;
 
-use Some\Application\Container as ContainerContract;
-use Some\Application\Dispatcher as DispatcherContract;
-
 /**
  * Dispatcher class
  */
-class Dispatcher implements DispatcherContract
+class Dispatcher
 {
     /**
      * Container
      *
-     * @var ContainerContract
+     * @var Container
      */
     protected $container;
 
@@ -46,9 +43,9 @@ class Dispatcher implements DispatcherContract
     /**
      * Constructor
      *
-     * @param ContainerContract $container Used to fetch arguments (optional)
+     * @param Container $container Used to fetch arguments (optional)
      */
-    public function __construct(ContainerContract $container = null)
+    public function __construct(Container $container = null)
     {
         $this->container = $container;
     }

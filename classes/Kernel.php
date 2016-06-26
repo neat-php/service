@@ -1,17 +1,14 @@
 <?php namespace Phrodo\Application;
 
-use Some\Application\Dispatcher as DispatcherContract;
-use Some\Application\Kernel as KernelContract;
-
 /**
  * Kernel class
  */
-abstract class Kernel implements KernelContract
+abstract class Kernel
 {
     /**
      * Dispatcher
      *
-     * @var DispatcherContract
+     * @var Dispatcher
      */
     protected $dispatch;
 
@@ -46,9 +43,9 @@ abstract class Kernel implements KernelContract
     /**
      * Constructor
      *
-     * @param DispatcherContract $dispatch
+     * @param Dispatcher $dispatch
      */
-    public function __construct(DispatcherContract $dispatch)
+    public function __construct(Dispatcher $dispatch)
     {
         $this->dispatch = $dispatch->withObject($this)->withArgumentDetection();
     }

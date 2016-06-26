@@ -23,6 +23,20 @@ abstract class Kernel implements KernelContract
     protected $bootstrappers = [];
 
     /**
+     * Handlers
+     *
+     * @var array
+     */
+    protected $handlers = [];
+
+    /**
+     * Exception handlers
+     *
+     * @var array
+     */
+    protected $exceptionHandlers = [];
+
+    /**
      * Terminators
      *
      * @var array
@@ -36,8 +50,7 @@ abstract class Kernel implements KernelContract
      */
     public function __construct(DispatcherContract $dispatch)
     {
-        $this->dispatch = $dispatch;
-        $this->dispatch->withObject($this);
+        $this->dispatch = $dispatch->withObject($this)->withArgumentDetection();
     }
 
     /**
@@ -51,9 +64,31 @@ abstract class Kernel implements KernelContract
     }
 
     /**
-     * Handles application core tasks
+     * Handle application core tasks
      */
-    public abstract function handle();
+    public function handle()
+    {
+        foreach ($this->handlers as $handler) {
+            if ($this->dispatch->call($handler)) {
+                return;
+            }
+        }
+
+        throw new \RuntimeException('Unable to handle the request');
+    }
+
+    /**
+     * Handle exceptions
+     *
+     * @todo use dispatcher to call exception handlers
+     * @param \Exception|\Throwable $e
+     */
+    public function exception($e)
+    {
+        foreach ($this->exceptionHandlers as $exceptionHandler) {
+            $exceptionHandler($e);
+        }
+    }
 
     /**
      * Terminate the application
@@ -63,5 +98,25 @@ abstract class Kernel implements KernelContract
         foreach ($this->terminators as $terminator) {
             $this->dispatch->call($terminator);
         }
+    }
+
+    /**
+     * Run the application (shortcut for bootstrap, handle then terminate)
+     *
+     * @codeCoverageIgnore Because one catch block is unreachable in PHP 5 or 7
+     */
+    public function run()
+    {
+        $this->bootstrap();
+
+        try {
+            $this->handle();
+        } catch (\Throwable $e) {
+            $this->exception($e);
+        } catch (\Exception $e) {
+            $this->exception($e);
+        }
+
+        $this->terminate();
     }
 }

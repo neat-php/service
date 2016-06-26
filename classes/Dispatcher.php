@@ -54,7 +54,7 @@ class Dispatcher implements DispatcherContract
     }
 
     /**
-     * Call the given callable
+     * Call the given closure
      *
      * @param callable $closure
      * @return object
@@ -69,6 +69,24 @@ class Dispatcher implements DispatcherContract
         }
 
         return call_user_func_array($callable, $arguments);
+    }
+
+    /**
+     * Make an object by calling the given classes' constructor
+     *
+     * @param string $class
+     * @return object
+     */
+    public function make($class)
+    {
+        $reflection = new \ReflectionClass($class);
+        if ($this->detectArguments && $constructor = $reflection->getConstructor()) {
+            $arguments = $this->getArguments($constructor);
+        } else {
+            $arguments = [];
+        }
+
+        return $reflection->newInstanceArgs($arguments);
     }
 
     /**
@@ -123,24 +141,6 @@ class Dispatcher implements DispatcherContract
     }
 
     /**
-     * Dispatch to constructor from given class
-     *
-     * @param string $class
-     * @return object
-     */
-    public function make($class)
-    {
-        $reflection = new \ReflectionClass($class);
-        if ($this->detectArguments) {
-            $arguments = $this->getArguments($reflection->getConstructor());
-        } else {
-            $arguments = [];
-        }
-
-        return $reflection->newInstanceArgs($arguments);
-    }
-
-    /**
      * Get arguments for reflected function or method
      *
      * @param \ReflectionFunctionAbstract $reflection
@@ -165,6 +165,7 @@ class Dispatcher implements DispatcherContract
      *
      * Converts to standard array-based callable:
      * "class@method" format
+     * "class::method" format
      * "method" format (with the default object)
      * "class" format (with the default method)
      *
@@ -184,11 +185,11 @@ class Dispatcher implements DispatcherContract
         if (strpos($closure, '::') !== false) {
             return explode('::', $closure);
         }
-        if ($this->object) {
+        if ($this->object && method_exists($this->object, $closure)) {
             return [$this->object, $closure];
         }
         if ($this->method) {
-            return [$closure, $this->method];
+            return [$this->getObject($closure), $this->method];
         }
 
         return $closure;

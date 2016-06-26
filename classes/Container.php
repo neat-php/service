@@ -57,7 +57,7 @@ class Container
         $this->dispatch = $dispatch ?: new Dispatcher($this);
         $this->dispatch->withObject($this)->withArgumentDetection();
 
-        $this->instances[ContainerContract::class] = $this;
+        $this->instances[Container::class] = $this;
     }
 
     /**

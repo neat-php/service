@@ -77,7 +77,6 @@ abstract class Kernel
     /**
      * Handle exceptions
      *
-     * @todo use dispatcher to call exception handlers
      * @param \Exception|\Throwable $e
      */
     public function exception($e)

@@ -13,13 +13,6 @@ class Container
     protected $instances = [];
 
     /**
-     * Classes
-     *
-     * @var array
-     */
-    protected $classes = [];
-
-    /**
      * Factories
      *
      * @var callable[]
@@ -29,16 +22,16 @@ class Container
     /**
      * Shared classes/factories
      *
-     * @var array
+     * @var bool[]
      */
     protected $shared = [];
 
     /**
      * Aliases
      *
-     * @var array
+     * @var string[]
      */
-    protected $aliases = [];
+    protected $classes = [];
 
     /**
      * Dispatcher
@@ -54,14 +47,44 @@ class Container
      */
     public function __construct(Dispatcher $dispatch = null)
     {
-        $this->dispatch = $dispatch ?: new Dispatcher($this);
-        $this->dispatch->withObject($this)->withArgumentDetection();
+        $this->dispatch = ($dispatch ?? new Dispatcher)->withContainer($this);
 
-        $this->instances[Container::class] = $this;
+        $this->initialize();
     }
 
     /**
-     * Does the container hold an instance or factory for a service?
+     * Invoke the given closure
+     *
+     * @param callable $closure
+     * @return object
+     */
+    public function __invoke($closure)
+    {
+        return $this->dispatch->call($closure);
+    }
+
+    /**
+     * Get the dispatcher
+     *
+     * @return Dispatcher
+     */
+    public function dispatch()
+    {
+        return $this->dispatch;
+    }
+
+    /**
+     * Initialize the container
+     */
+    protected function initialize()
+    {
+        $this->classes['container']     = static::class;
+        $this->classes[self::class]     = static::class;
+        $this->instances[static::class] = $this;
+    }
+
+    /**
+     * Can the container produce an instance for this service?
      *
      * The service can either be a class name, interface name or other alias
      *
@@ -70,11 +93,11 @@ class Container
      */
     public function has($service)
     {
-        $abstract = $this->resolve($service);
+        $class = $this->resolve($service);
 
-        return isset($this->instances[$abstract])
-            || isset($this->factories[$abstract])
-            || isset($this->classes[$abstract]);
+        return isset($this->instances[$class])
+            || isset($this->factories[$class])
+            || class_exists($class);
     }
 
     /**
@@ -87,22 +110,22 @@ class Container
      */
     public function get($service)
     {
-        $abstract = $this->resolve($service);
-        if (isset($this->instances[$abstract])) {
-            return $this->instances[$abstract];
+        $class = $this->resolve($service);
+        if (isset($this->instances[$class])) {
+            return $this->instances[$class];
         }
 
         $instance = null;
-        if (isset($this->classes[$abstract])) {
-            $instance = $this->dispatch->make($this->classes[$abstract]);
-        } elseif (isset($this->factories[$abstract])) {
-            $instance = $this->dispatch->call($this->factories[$abstract]);
-        } elseif (class_exists($abstract)) {
-            $instance = $this->dispatch->make($abstract);
+        if (isset($this->factories[$class])) {
+            $instance = $this->dispatch->call($this->factories[$class]);
+        } elseif (class_exists($class)) {
+            $instance = $this->dispatch->create($class);
+        } else {
+            throw new NotFoundException('Could not find service '. $class);
         }
 
-        if (isset($this->shared[$abstract]) && $this->shared[$abstract]) {
-            $this->instances[$abstract] = $instance;
+        if ($this->shared[$class] ?? false) {
+            $this->instances[$class] = $instance;
         }
 
         return $instance;
@@ -117,46 +140,78 @@ class Container
      *
      * @param string                 $service
      * @param object|callable|string $concrete
-     * @param bool                   $shared
      */
-    public function set($service, $concrete, $shared = false)
+    public function set($service, $concrete)
     {
-        $abstract = $this->resolve($service);
+        $class = $this->resolve($service);
 
-        if (is_object($concrete)) {
-            $this->instances[$abstract] = $concrete;
-        } elseif (is_string($concrete)) {
-            $this->classes[$abstract] = $concrete;
+        if (is_callable($concrete)) {
+            $this->factories[$class] = $concrete;
         } else {
-            $this->factories[$abstract] = $concrete;
+            $this->instances[$class] = $concrete;
         }
-
-        $this->shared[$abstract] = $shared;
     }
 
     /**
-     * Alias an abstract class or interface
+     * Share a service instance
      *
-     * @param string $alias
-     * @param string $abstract
+     * @param string $service
      */
-    public function alias($alias, $abstract)
+    public function share($service)
     {
-        $this->aliases[$alias] = $abstract;
+        $class = $this->resolve($service);
+
+        $this->shared[$class] = true;
     }
 
     /**
-     * Resolve an alias to its abstract name
+     * Register services from a provider
      *
-     * @param string $alias
+     * @param object $provider
+     */
+    public function provide($provider)
+    {
+        $reflection = new \ReflectionClass($provider);
+
+        foreach ($reflection->getMethods(\ReflectionMethod::IS_PUBLIC) as $method) {
+            if ($method->isStatic()) {
+                continue;
+            }
+
+            $return = $method->getReturnType();
+            if (!$return || $return->isBuiltin()) {
+                continue;
+            }
+
+            $class = (string) $return;
+
+            $this->classes[$method->name] = $class;
+            $this->factories[$class]      = $method->getClosure($provider);
+        }
+    }
+
+    /**
+     * Alias a class name
+     *
+     * The service can be a custom name, interface or abstract/parent
+     * class name you want to associate with the given class.
+     *
+     * @param string $service
+     * @param string $class
+     */
+    public function alias($service, $class)
+    {
+        $this->classes[$service] = $class;
+    }
+
+    /**
+     * Resolve a service to its class name
+     *
+     * @param string $service
      * @return string
      */
-    public function resolve($alias)
+    public function resolve($service)
     {
-        if (isset($this->aliases[$alias])) {
-            return $this->aliases[$alias];
-        }
-
-        return $alias;
+        return $this->classes[$service] ?? $service;
     }
 }

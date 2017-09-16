@@ -1,16 +1,21 @@
 <?php namespace Phrodo\Application;
 
+use ReflectionClass;
+use ReflectionFunction;
+use ReflectionMethod;
+use Traversable;
+
 /**
  * Dispatcher class
  */
 class Dispatcher
 {
     /**
-     * Container
+     * Containers
      *
-     * @var Container
+     * @var Container[]
      */
-    protected $container;
+    protected $containers = [];
 
     /**
      * Default namespace
@@ -34,11 +39,11 @@ class Dispatcher
     protected $method = '__invoke';
 
     /**
-     * Detect arguments?
+     * Arguments
      *
-     * @var bool
+     * @var array
      */
-    protected $detectArguments = false;
+    protected $arguments = [];
 
     /**
      * Constructor
@@ -47,43 +52,76 @@ class Dispatcher
      */
     public function __construct(Container $container = null)
     {
-        $this->container = $container;
+        if ($container) {
+            $this->containers[] = $container;
+        }
     }
 
     /**
-     * Call the given closure
+     * Call the given closure, method or function
      *
      * @param callable $closure
-     * @return object
+     * @return mixed
      */
     public function call($closure)
     {
-        $callable = $this->getCallable($closure);
-        if ($this->detectArguments) {
-            $arguments = $this->getArguments($this->getCallableReflection($callable));
-        } else {
-            $arguments = [];
-        }
+        $callable  = $this->getCallable($closure);
+        $arguments = $this->getArguments($this->getCallableReflection($callable));
 
-        return call_user_func_array($callable, $arguments);
+        return $callable(...$arguments);
     }
 
     /**
-     * Make an object by calling the given classes' constructor
+     * Create an object by calling the given classes' constructor
      *
      * @param string $class
      * @return object
      */
-    public function make($class)
+    public function create($class)
     {
-        $reflection = new \ReflectionClass($class);
-        if ($this->detectArguments && $constructor = $reflection->getConstructor()) {
-            $arguments = $this->getArguments($constructor);
+        $reflection  = new ReflectionClass($class);
+        $constructor = $reflection->getConstructor();
+        $arguments   = $constructor ? $this->getArguments($constructor) : [];
+
+        return new $class(...$arguments);
+    }
+
+    /**
+     * Resolve arguments from container
+     *
+     * @param Container $container
+     * @param bool      $prioritize
+     * @return $this
+     */
+    public function withContainer(Container $container, $prioritize = false)
+    {
+        $clone = clone $this;
+
+        if ($prioritize) {
+            array_unshift($clone->containers, $container);
         } else {
-            $arguments = [];
+            array_push($clone->containers, $container);
         }
 
-        return $reflection->newInstanceArgs($arguments);
+        return $clone;
+    }
+
+    /**
+     * Resolve using supplied arguments
+     *
+     * @param array|Traversable $arguments
+     * @return $this
+     */
+    public function withArguments($arguments)
+    {
+        if ($arguments instanceof Traversable) {
+            $arguments = iterator_to_array($arguments);
+        }
+
+        $clone = clone $this;
+        $clone->arguments = array_merge($this->arguments, $arguments);
+
+        return $clone;
     }
 
     /**
@@ -94,9 +132,10 @@ class Dispatcher
      */
     public function withNamespace($namespace)
     {
-        $this->namespace = trim($namespace, '\\');
+        $clone = clone $this;
+        $clone->namespace = trim($namespace, '\\');
 
-        return $this;
+        return $clone;
     }
 
     /**
@@ -107,9 +146,10 @@ class Dispatcher
      */
     public function withObject($object)
     {
-        $this->object = $object;
+        $clone = clone $this;
+        $clone->object = $object;
 
-        return $this;
+        return $clone;
     }
 
     /**
@@ -120,37 +160,41 @@ class Dispatcher
      */
     public function withMethod($method)
     {
-        $this->method = $method;
+        $clone = clone $this;
+        $clone->method = $method;
 
-        return $this;
-    }
-
-    /**
-     * Enable argument detection
-     *
-     * @return $this
-     */
-    public function withArgumentDetection()
-    {
-        $this->detectArguments = true;
-
-        return $this;
+        return $clone;
     }
 
     /**
      * Get arguments for reflected function or method
      *
-     * @param \ReflectionFunctionAbstract $reflection
+     * @param ReflectionFunction|ReflectionMethod $reflection
      * @return array
      */
     protected function getArguments($reflection)
     {
         $arguments = [];
         foreach ($reflection->getParameters() as $parameter) {
-            if ($this->container && $parameter->getClass()) {
-                $arguments[] = $this->container->get($parameter->getClass()->name);
+            if ($class = $parameter->getClass()) {
+                foreach ($this->containers as $container) {
+                    if ($container->has($class->name)) {
+                        $arguments[] = $container->get($class->name);
+                        continue 2;
+                    }
+                }
+            }
+            if (array_key_exists($parameter->name, $this->arguments)) {
+                $arguments[] = $this->arguments[$parameter->name];
             } elseif ($parameter->isDefaultValueAvailable()) {
                 $arguments[] = $parameter->getDefaultValue();
+            } else {
+                if ($reflection instanceof ReflectionMethod) {
+                    $method = $reflection->class . '::' . $reflection->name;
+                } else {
+                    $method = $reflection->name;
+                }
+                throw new NotFoundException('Could not resolve parameter $' . $parameter->getName() . ' for ' . $method);
             }
         }
 
@@ -204,25 +248,27 @@ class Dispatcher
             $class = $this->namespace . '\\' . $class;
         }
 
-        if ($this->container) {
-            return $this->container->get($class);
+        foreach ($this->containers as $container) {
+            if ($container->has($class)) {
+                return $container->get($class);
+            }
         }
 
-        return $this->make($class);
+        return $this->create($class);
     }
 
     /**
      * Get callable reflection
      *
      * @param callable $callable
-     * @return \ReflectionFunction|\ReflectionMethod
+     * @return ReflectionFunction|ReflectionMethod
      */
     protected function getCallableReflection($callable)
     {
         if (is_array($callable)) {
-            return new \ReflectionMethod($callable[0], $callable[1]);
+            return new ReflectionMethod($callable[0], $callable[1]);
         }
 
-        return new \ReflectionFunction($callable);
+        return new ReflectionFunction($callable);
     }
 }

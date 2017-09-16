@@ -71,7 +71,7 @@ class ContainerTest extends TestCase
 
         $dispatcher = $this->createPartialMock(Dispatcher::class, ['call']);
         $dispatcher
-            ->expects($this->once())
+            ->expects($this->exactly(2))
             ->method('call')
             ->with($closure)
             ->willReturnCallback($closure);

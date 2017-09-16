@@ -21,7 +21,6 @@ composer require phrodo/application
 
 Todo
 ----
-Documentation
-Unit tests
-Use dispatcher to call exception handlers in the kernel
-Event manager
+- Documentation
+- Unit tests
+- Event manager

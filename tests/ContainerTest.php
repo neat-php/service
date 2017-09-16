@@ -23,14 +23,11 @@ class ContainerTest extends TestCase
      */
     public function testInvocation()
     {
-        $dispatcher = $this
-            ->getMockBuilder(Dispatcher::class)
-            ->setMethods(['call'])
-            ->getMock();
 
         $closure = function () {};
         $service = new Service;
 
+        $dispatcher = $this->createPartialMock(Dispatcher::class, ['call']);
         $dispatcher
             ->expects($this->once())
             ->method('call')
@@ -68,10 +65,19 @@ class ContainerTest extends TestCase
      */
     public function testFactory()
     {
-        $container = new Container;
-        $container->set(Service::class, function () {
+        $closure = function () {
             return new Service;
-        });
+        };
+
+        $dispatcher = $this->createPartialMock(Dispatcher::class, ['call']);
+        $dispatcher
+            ->expects($this->once())
+            ->method('call')
+            ->with($closure)
+            ->willReturnCallback($closure);
+
+        $container = new Container($dispatcher);
+        $container->set(Service::class, $closure);
 
         $this->assertInstanceOf(Service::class, $service1 = $container->get(Service::class));
         $this->assertInstanceOf(Service::class, $service2 = $container->get(Service::class));
@@ -83,7 +89,14 @@ class ContainerTest extends TestCase
      */
     public function testOther()
     {
-        $container = new Container;
+        $dispatcher = $this->createPartialMock(Dispatcher::class, ['create']);
+        $dispatcher
+            ->expects($this->once())
+            ->method('create')
+            ->with(Service::class)
+            ->willReturn(new Service);
+
+        $container = new Container($dispatcher);
 
         $this->assertTrue($container->has(Service::class));
         $this->assertInstanceOf(Service::class, $container->get(Service::class));
@@ -115,10 +128,19 @@ class ContainerTest extends TestCase
      */
     public function testShare()
     {
-        $container = new Container;
-        $container->set(Service::class, function () {
+        $closure = function () {
             return new Service;
-        });
+        };
+
+        $dispatcher = $this->createPartialMock(Dispatcher::class, ['call']);
+        $dispatcher
+            ->expects($this->once())
+            ->method('call')
+            ->with($closure)
+            ->willReturn($closure());
+
+        $container = new Container($dispatcher);
+        $container->set(Service::class, $closure);
         $container->share(Service::class);
 
         $service1 = $container->get(Service::class);
@@ -131,7 +153,17 @@ class ContainerTest extends TestCase
      */
     public function testServiceProvider()
     {
-        $container = new Container;
+        $dispatcher = $this
+            ->getMockBuilder(Dispatcher::class)
+            ->setMethods(['call'])
+            ->getMock();
+
+        $dispatcher
+            ->expects($this->exactly(2))
+            ->method('call')
+            ->willReturn(new Service);
+
+        $container = new Container($dispatcher);
         $container->provide(new ServiceProvider);
 
         $this->assertFalse($container->has('boolean'));
@@ -153,6 +185,5 @@ class ContainerTest extends TestCase
         $container->alias('db', Service::class);
 
         $this->assertSame(Service::class, $container->resolve('db'));
-        $this->assertInstanceOf(Service::class, $container->get('db'));
     }
 }

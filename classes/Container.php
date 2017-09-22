@@ -107,6 +107,7 @@ class Container
      *
      * @param string $service
      * @return object
+     * @throws NotFoundException
      */
     public function get($service)
     {

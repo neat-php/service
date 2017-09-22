@@ -171,6 +171,7 @@ class Dispatcher
      *
      * @param ReflectionFunction|ReflectionMethod $reflection
      * @return array
+     * @throws NotFoundException
      */
     protected function getArguments($reflection)
     {

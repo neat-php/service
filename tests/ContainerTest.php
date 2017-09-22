@@ -1,4 +1,4 @@
-<?php namespace Phrodo\Test\Application;
+<?php namespace Phrodo\Application\Test;
 
 use PHPUnit\Framework\TestCase;
 use Phrodo\Application\Container;

@@ -25,20 +25,6 @@ class Dispatcher
     protected $namespace;
 
     /**
-     * Default object
-     *
-     * @var object
-     */
-    protected $object;
-
-    /**
-     * Default method
-     *
-     * @var string
-     */
-    protected $method = '__invoke';
-
-    /**
      * Arguments
      *
      * @var array
@@ -140,34 +126,6 @@ class Dispatcher
     }
 
     /**
-     * Dispatch with default object
-     *
-     * @param object $object
-     * @return $this
-     */
-    public function withObject($object)
-    {
-        $clone = clone $this;
-        $clone->object = $object;
-
-        return $clone;
-    }
-
-    /**
-     * Dispatch with default method
-     *
-     * @param string $method
-     * @return $this
-     */
-    public function withMethod($method)
-    {
-        $clone = clone $this;
-        $clone->method = $method;
-
-        return $clone;
-    }
-
-    /**
      * Get arguments for reflected function or method
      *
      * @param ReflectionFunction|ReflectionMethod $reflection
@@ -209,8 +167,6 @@ class Dispatcher
      * Converts to standard array-based callable:
      * "class@method" format
      * "class::method" format
-     * "method" format (with the default object)
-     * "class" format (with the default method)
      *
      * @param callable|string $closure
      * @return callable
@@ -229,12 +185,6 @@ class Dispatcher
             list($class, $method) = explode('::', $closure);
 
             return [$this->getClass($class), $method];
-        }
-        if ($this->object && method_exists($this->object, $closure)) {
-            return [$this->object, $closure];
-        }
-        if ($this->method) {
-            return [$this->getObject($closure), $this->method];
         }
 
         return $closure;

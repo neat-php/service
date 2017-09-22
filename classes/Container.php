@@ -134,10 +134,6 @@ class Container
     /**
      * Set a service instance, factory or class name
      *
-     * Objects with __invoke method are regarded as instances themselves even
-     * though they are callable. If you intend to use such an object as
-     * factory, wrap it into a closure that invokes the object.
-     *
      * @param string                 $service
      * @param object|callable|string $concrete
      */

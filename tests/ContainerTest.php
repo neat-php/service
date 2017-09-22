@@ -85,42 +85,24 @@ class ContainerTest extends TestCase
     }
 
     /**
-     * Test has/get operations on non-configured classes
+     * Test has unknown service
      */
-    public function testOther()
-    {
-        $dispatcher = $this->createPartialMock(Dispatcher::class, ['create']);
-        $dispatcher
-            ->expects($this->once())
-            ->method('create')
-            ->with(Service::class)
-            ->willReturn(new Service);
-
-        $container = new Container($dispatcher);
-
-        $this->assertTrue($container->has(Service::class));
-        $this->assertInstanceOf(Service::class, $container->get(Service::class));
-    }
-
-    /**
-     * Test has non-existing service
-     */
-    public function testHasNonExisting()
+    public function testHasUnknown()
     {
         $container = new Container;
 
-        $this->assertFalse($container->has('Phrodo\Application\NonExistentClass'));
+        $this->assertFalse($container->has(Service::class));
     }
 
     /**
-     * Test get non-existing class
+     * Test get unknown class
      */
-    public function testGetNonExisting()
+    public function testGetUnknown()
     {
         $this->expectException(NotFoundException::class);
 
         $container = new Container;
-        $container->get('Phrodo\Application\NonExistentClass');
+        $container->get(Service::class);
     }
 
     /**

@@ -96,8 +96,7 @@ class Container
         $class = $this->resolve($service);
 
         return isset($this->instances[$class])
-            || isset($this->factories[$class])
-            || class_exists($class);
+            || isset($this->factories[$class]);
     }
 
     /**
@@ -115,21 +114,16 @@ class Container
         if (isset($this->instances[$class])) {
             return $this->instances[$class];
         }
-
-        $instance = null;
         if (isset($this->factories[$class])) {
             $instance = $this->dispatch->call($this->factories[$class]);
-        } elseif (class_exists($class)) {
-            $instance = $this->dispatch->create($class);
-        } else {
-            throw new NotFoundException('Could not find service '. $class);
+            if ($this->shared[$class] ?? false) {
+                $this->instances[$class] = $instance;
+            }
+
+            return $instance;
         }
 
-        if ($this->shared[$class] ?? false) {
-            $this->instances[$class] = $instance;
-        }
-
-        return $instance;
+        throw new NotFoundException('Could not find service '. $class);
     }
 
     /**

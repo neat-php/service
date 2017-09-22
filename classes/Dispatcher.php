@@ -79,6 +79,7 @@ class Dispatcher
      */
     public function create($class)
     {
+        $class       = $this->getClass($class);
         $reflection  = new ReflectionClass($class);
         $constructor = $reflection->getConstructor();
         $arguments   = $constructor ? $this->getArguments($constructor) : [];
@@ -225,7 +226,9 @@ class Dispatcher
             return [$this->getObject($class), $method];
         }
         if (strpos($closure, '::') !== false) {
-            return explode('::', $closure);
+            list($class, $method) = explode('::', $closure);
+
+            return [$this->getClass($class), $method];
         }
         if ($this->object && method_exists($this->object, $closure)) {
             return [$this->object, $closure];
@@ -238,6 +241,21 @@ class Dispatcher
     }
 
     /**
+     * Get a class with namespace
+     *
+     * @param string $class
+     * @return string
+     */
+    protected function getClass($class)
+    {
+        if ($this->namespace && strpos($class, '\\') === false) {
+            return $this->namespace . '\\' . $class;
+        }
+
+        return $class;
+    }
+
+    /**
      * Get object by class
      *
      * @param string $class
@@ -245,10 +263,7 @@ class Dispatcher
      */
     protected function getObject($class)
     {
-        if ($this->namespace && strpos($class, '\\') === false) {
-            $class = $this->namespace . '\\' . $class;
-        }
-
+        $class = $this->getClass($class);
         foreach ($this->containers as $container) {
             if ($container->has($class)) {
                 return $container->get($class);

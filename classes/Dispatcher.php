@@ -32,18 +32,6 @@ class Dispatcher
     protected $arguments = [];
 
     /**
-     * Constructor
-     *
-     * @param Container $container Used to fetch arguments (optional)
-     */
-    public function __construct(Container $container = null)
-    {
-        if ($container) {
-            $this->containers[] = $container;
-        }
-    }
-
-    /**
      * Call the given closure, method or function
      *
      * @param callable $closure

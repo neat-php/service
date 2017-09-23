@@ -125,14 +125,8 @@ class Dispatcher
         $arguments = [];
         foreach ($reflection->getParameters() as $parameter) {
             if ($class = $parameter->getClass()) {
-                foreach ($this->containers as $container) {
-                    if ($container->has($class->name)) {
-                        $arguments[] = $container->get($class->name);
-                        continue 2;
-                    }
-                }
-            }
-            if (array_key_exists($parameter->name, $this->arguments)) {
+                $arguments[] = $this->getObject($class->name);
+            } elseif (array_key_exists($parameter->name, $this->arguments)) {
                 $arguments[] = $this->arguments[$parameter->name];
             } elseif ($parameter->isDefaultValueAvailable()) {
                 $arguments[] = $parameter->getDefaultValue();
@@ -167,7 +161,7 @@ class Dispatcher
         if (strpos($closure, '@') !== false) {
             list($class, $method) = explode('@', $closure);
 
-            return [$this->getObject($class), $method];
+            return [$this->getObject($this->getClass($class)), $method];
         }
         if (strpos($closure, '::') !== false) {
             list($class, $method) = explode('::', $closure);
@@ -201,7 +195,6 @@ class Dispatcher
      */
     protected function getObject($class)
     {
-        $class = $this->getClass($class);
         foreach ($this->containers as $container) {
             if ($container->has($class)) {
                 return $container->get($class);

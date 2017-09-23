@@ -130,6 +130,8 @@ class Dispatcher
                 $arguments[] = $this->arguments[$parameter->name];
             } elseif ($parameter->isDefaultValueAvailable()) {
                 $arguments[] = $parameter->getDefaultValue();
+            } elseif ($parameter->isVariadic()) {
+                break;
             } else {
                 if ($reflection instanceof ReflectionMethod) {
                     $method = $reflection->class . '::' . $reflection->name;

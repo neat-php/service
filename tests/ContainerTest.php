@@ -146,7 +146,7 @@ class ContainerTest extends TestCase
             ->willReturn(new Service);
 
         $container = new Container($dispatcher);
-        $container->provide(new ServiceProvider);
+        $container->register(new ServiceProvider);
 
         $this->assertFalse($container->has('boolean'));
         $this->assertFalse($container->has('unspecified'));

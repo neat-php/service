@@ -160,7 +160,7 @@ class Container
      *
      * @param object $provider
      */
-    public function provide($provider)
+    public function register($provider)
     {
         $reflection = new \ReflectionClass($provider);
 

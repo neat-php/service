@@ -39,8 +39,9 @@ class Dispatcher
      */
     public function call($closure)
     {
-        $callable  = $this->getCallable($closure);
-        $arguments = $this->getArguments($this->getCallableReflection($callable));
+        $callable   = $this->getCallable($closure);
+        $reflection = $this->getCallableReflection($callable);
+        $arguments  = $this->getArguments($reflection);
 
         return $callable(...$arguments);
     }
@@ -54,9 +55,8 @@ class Dispatcher
     public function create($class)
     {
         $class       = $this->getClass($class);
-        $reflection  = new ReflectionClass($class);
-        $constructor = $reflection->getConstructor();
-        $arguments   = $constructor ? $this->getArguments($constructor) : [];
+        $reflection  = $this->getConstructorReflection($class);
+        $arguments   = $reflection ? $this->getArguments($reflection) : [];
 
         return new $class(...$arguments);
     }
@@ -133,12 +133,7 @@ class Dispatcher
             } elseif ($parameter->isVariadic()) {
                 break;
             } else {
-                if ($reflection instanceof ReflectionMethod) {
-                    $method = $reflection->class . '::' . $reflection->name;
-                } else {
-                    $method = $reflection->name;
-                }
-                throw new NotFoundException('Could not resolve parameter $' . $parameter->getName() . ' for ' . $method);
+                throw NotFoundException::parameter($parameter);
             }
         }
 
@@ -219,5 +214,18 @@ class Dispatcher
         }
 
         return new ReflectionFunction($callable);
+    }
+
+    /**
+     * Get constructor reflection
+     *
+     * @param string $class
+     * @return ReflectionMethod|null
+     */
+    protected function getConstructorReflection($class)
+    {
+        $reflection  = new ReflectionClass($class);
+
+        return $reflection->getConstructor();
     }
 }

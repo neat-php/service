@@ -48,19 +48,6 @@ class Container
     public function __construct(Dispatcher $dispatch = null)
     {
         $this->dispatch = ($dispatch ?? new Dispatcher)->withContainer($this);
-
-        $this->initialize();
-    }
-
-    /**
-     * Invoke the given closure
-     *
-     * @param callable $closure
-     * @return object
-     */
-    public function __invoke($closure)
-    {
-        return $this->dispatch->call($closure);
     }
 
     /**
@@ -71,16 +58,6 @@ class Container
     public function dispatch()
     {
         return $this->dispatch;
-    }
-
-    /**
-     * Initialize the container
-     */
-    protected function initialize()
-    {
-        $this->classes['container']     = static::class;
-        $this->classes[self::class]     = static::class;
-        $this->instances[static::class] = $this;
     }
 
     /**
@@ -111,9 +88,11 @@ class Container
     public function get($service)
     {
         $class = $this->resolve($service);
+
         if (isset($this->instances[$class])) {
             return $this->instances[$class];
         }
+
         if (isset($this->factories[$class])) {
             $instance = $this->dispatch->call($this->factories[$class]);
             if ($this->shared[$class] ?? false) {

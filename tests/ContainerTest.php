@@ -8,35 +8,13 @@ use Phrodo\Application\NotFoundException;
 class ContainerTest extends TestCase
 {
     /**
-     * Test initialization
+     * Test empty
      */
-    public function testInitialization()
+    public function testEmpty()
     {
         $container = new Container;
 
-        $this->assertSame($container, $container->get(Container::class));
-        $this->assertSame($container, $container->get('container'));
-    }
-
-    /**
-     * Test invocation
-     */
-    public function testInvocation()
-    {
-
-        $closure = function () {};
-        $service = new Service;
-
-        $dispatcher = $this->createPartialMock(Dispatcher::class, ['call']);
-        $dispatcher
-            ->expects($this->once())
-            ->method('call')
-            ->with($closure)
-            ->willReturn($service);
-
-        $container = new Container($dispatcher);
-
-        $this->assertSame($service, $container($closure));
+        $this->assertFalse($container->has(Container::class));
     }
 
     /**

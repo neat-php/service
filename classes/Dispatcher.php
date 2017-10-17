@@ -133,7 +133,7 @@ class Dispatcher
             } elseif ($parameter->isVariadic()) {
                 break;
             } else {
-                throw NotFoundException::parameter($parameter);
+                throw NotFoundException::forParameter($parameter, $reflection);
             }
         }
 

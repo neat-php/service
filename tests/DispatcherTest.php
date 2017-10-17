@@ -65,6 +65,7 @@ class DispatcherTest extends TestCase
     public function testUnknownParameterInClosure()
     {
         $this->expectException(NotFoundException::class);
+        $this->expectExceptionMessage('Argument not found for parameter $unknown');
 
         $dispatcher = new Dispatcher;
         $dispatcher->call(function ($unknown) {
@@ -77,6 +78,7 @@ class DispatcherTest extends TestCase
     public function testUnknownParameterInMethod()
     {
         $this->expectException(NotFoundException::class);
+        $this->expectExceptionMessage('Argument not found for parameter $unknown');
 
         $object = new class
         {

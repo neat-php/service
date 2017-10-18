@@ -3,7 +3,6 @@
 use ReflectionClass;
 use ReflectionFunction;
 use ReflectionMethod;
-use Traversable;
 
 /**
  * Dispatcher class
@@ -25,38 +24,33 @@ class Dispatcher
     protected $namespace;
 
     /**
-     * Arguments
-     *
-     * @var array
-     */
-    protected $arguments = [];
-
-    /**
      * Call the given closure, method or function
      *
      * @param callable $closure
+     * @param array    $named
      * @return mixed
      */
-    public function call($closure)
+    public function call($closure, array $named = [])
     {
         $callable   = $this->getCallable($closure);
         $reflection = $this->getCallableReflection($callable);
-        $arguments  = $this->getArguments($reflection);
+        $arguments  = $this->getArguments($reflection, $named);
 
         return $callable(...$arguments);
     }
 
     /**
-     * Create an object by calling the given classes' constructor
+     * Create an object of the given class
      *
      * @param string $class
+     * @param array  $named
      * @return object
      */
-    public function create($class)
+    public function create($class, array $named = [])
     {
-        $class       = $this->getClass($class);
-        $reflection  = $this->getConstructorReflection($class);
-        $arguments   = $reflection ? $this->getArguments($reflection) : [];
+        $class      = $this->getClass($class);
+        $reflection = $this->getConstructorReflection($class);
+        $arguments  = $reflection ? $this->getArguments($reflection, $named) : [];
 
         return new $class(...$arguments);
     }
@@ -82,24 +76,6 @@ class Dispatcher
     }
 
     /**
-     * Resolve using supplied arguments
-     *
-     * @param array|Traversable $arguments
-     * @return $this
-     */
-    public function withArguments($arguments)
-    {
-        if ($arguments instanceof Traversable) {
-            $arguments = iterator_to_array($arguments);
-        }
-
-        $clone = clone $this;
-        $clone->arguments = array_merge($this->arguments, $arguments);
-
-        return $clone;
-    }
-
-    /**
      * Dispatch with default namespace
      *
      * @param string $namespace
@@ -117,17 +93,18 @@ class Dispatcher
      * Get arguments for reflected function or method
      *
      * @param ReflectionFunction|ReflectionMethod $reflection
+     * @param array                               $named
      * @return array
      * @throws NotFoundException
      */
-    protected function getArguments($reflection)
+    protected function getArguments($reflection, array $named = [])
     {
         $arguments = [];
         foreach ($reflection->getParameters() as $parameter) {
-            if ($class = $parameter->getClass()) {
+            if (array_key_exists($parameter->name, $named)) {
+                $arguments[] = $named[$parameter->name];
+            } elseif ($class = $parameter->getClass()) {
                 $arguments[] = $this->getObject($class->name);
-            } elseif (array_key_exists($parameter->name, $this->arguments)) {
-                $arguments[] = $this->arguments[$parameter->name];
             } elseif ($parameter->isDefaultValueAvailable()) {
                 $arguments[] = $parameter->getDefaultValue();
             } elseif ($parameter->isVariadic()) {
@@ -224,7 +201,7 @@ class Dispatcher
      */
     protected function getConstructorReflection($class)
     {
-        $reflection  = new ReflectionClass($class);
+        $reflection = new ReflectionClass($class);
 
         return $reflection->getConstructor();
     }

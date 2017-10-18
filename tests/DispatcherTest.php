@@ -152,9 +152,8 @@ class DispatcherTest extends TestCase
      */
     public function testWithArguments()
     {
-        $dispatcher = (new Dispatcher)
-            ->withArguments(['id' => 1, 'name' => 'john'])
-            ->withArguments(new \ArrayObject(['id' => 2]));
+        $dispatcher = new Dispatcher;
+        $arguments  = ['id' => 1, 'name' => 'john'];
 
         $idClosure = function ($id) {
             return $id;
@@ -163,8 +162,13 @@ class DispatcherTest extends TestCase
             return $name;
         };
 
-        $this->assertSame('john', $dispatcher->call($nameClosure));
-        $this->assertSame(2, $dispatcher->call($idClosure));
+        $this->assertSame('john', $dispatcher->call($nameClosure, $arguments));
+        $this->assertSame(1, $dispatcher->call($idClosure, $arguments));
+
+        $service  = new Service;
+        $consumer = $dispatcher->create(ServiceConsumer::class, ['service' => $service]);
+
+        $this->assertSame($service, $consumer->getService());
     }
 
     /**

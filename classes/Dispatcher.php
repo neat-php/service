@@ -29,6 +29,7 @@ class Dispatcher
      * @param callable $closure
      * @param array    $named
      * @return mixed
+     * @throws NotFoundException
      */
     public function call($closure, array $named = [])
     {
@@ -45,6 +46,7 @@ class Dispatcher
      * @param string $class
      * @param array  $named
      * @return object
+     * @throws NotFoundException
      */
     public function create($class, array $named = [])
     {
@@ -126,6 +128,7 @@ class Dispatcher
      *
      * @param callable|string $closure
      * @return callable
+     * @throws NotFoundException
      */
     protected function getCallable($closure)
     {
@@ -166,6 +169,7 @@ class Dispatcher
      *
      * @param string $class
      * @return object
+     * @throws NotFoundException
      */
     protected function getObject($class)
     {

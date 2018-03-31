@@ -4,6 +4,7 @@ namespace Neat\Service;
 use ReflectionFunction;
 use ReflectionMethod;
 use ReflectionParameter;
+use Throwable;
 
 /**
  * Not found exception
@@ -30,5 +31,16 @@ class NotFoundException extends \Exception
         }
 
         return new static('Argument not found for parameter $' . $parameter . ' in ' . $function);
+    }
+
+    /**
+     * Create NotFoundException for another exception
+     *
+     * @param Throwable $exception
+     * @return static
+     */
+    public static function forException(Throwable $exception)
+    {
+        return new static($exception->getMessage(), $exception->getCode(), $exception);
     }
 }

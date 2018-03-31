@@ -70,6 +70,41 @@ class InjectorTest extends TestCase
     }
 
     /**
+     * Test unknown class
+     */
+    public function testUnknownClass()
+    {
+        $this->expectException(NotFoundException::class);
+
+        $injector = new Injector;
+        $injector->create(__NAMESPACE__ . '\\UnknownClass');
+    }
+
+    /**
+     * Test unknown function
+     */
+    public function testUnknownFunction()
+    {
+        $this->expectException(NotFoundException::class);
+
+        $injector = new Injector;
+        $injector->call(__NAMESPACE__ . '\\unknown_function');
+    }
+
+    /**
+     * Test unknown Method
+     */
+    public function testUnknownMethod()
+    {
+        $this->expectException(NotFoundException::class);
+
+        $service = new Service;
+
+        $injector = new Injector;
+        $injector->call([$service, 'unknownMethod']);
+    }
+
+    /**
      * Test Not found exception for unknown parameter in function
      */
     public function testUnknownParameterInFunction()

@@ -2,6 +2,7 @@
 namespace Neat\Service;
 
 use ReflectionClass;
+use ReflectionException;
 use ReflectionFunction;
 use ReflectionMethod;
 
@@ -188,14 +189,19 @@ class Injector
      *
      * @param callable $callable
      * @return ReflectionFunction|ReflectionMethod
+     * @throws NotFoundException
      */
     protected function getCallableReflection($callable)
     {
-        if (is_array($callable)) {
-            return new ReflectionMethod($callable[0], $callable[1]);
-        }
+        try {
+            if (is_array($callable)) {
+                return new ReflectionMethod($callable[0], $callable[1]);
+            }
 
-        return new ReflectionFunction($callable);
+            return new ReflectionFunction($callable);
+        } catch (ReflectionException $e) {
+            throw NotFoundException::forException($e);
+        }
     }
 
     /**
@@ -203,11 +209,16 @@ class Injector
      *
      * @param string $class
      * @return ReflectionMethod|null
+     * @throws NotFoundException
      */
     protected function getConstructorReflection($class)
     {
-        $reflection = new ReflectionClass($class);
+        try {
+            $reflection = new ReflectionClass($class);
 
-        return $reflection->getConstructor();
+            return $reflection->getConstructor();
+        } catch (ReflectionException $e) {
+            throw NotFoundException::forException($e);
+        }
     }
 }

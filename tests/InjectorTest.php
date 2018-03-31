@@ -6,6 +6,15 @@ use Neat\Service\Container;
 use Neat\Service\Injector;
 use Neat\Service\NotFoundException;
 
+/**
+ * Function with unknown parameter
+ *
+ * @param mixed $unknown
+ */
+function unknown($unknown)
+{
+}
+
 class InjectorTest extends TestCase
 {
     /**
@@ -52,8 +61,8 @@ class InjectorTest extends TestCase
      */
     public function testVariadicParameter()
     {
-        $injector = new Injector;
-        $arguments  = $injector->call(function (...$variadic) {
+        $injector  = new Injector;
+        $arguments = $injector->call(function (...$variadic) {
             return count($variadic);
         });
 
@@ -61,40 +70,29 @@ class InjectorTest extends TestCase
     }
 
     /**
-     * Test unknown parameter
+     * Test Not found exception for unknown parameter in function
      */
-    public function testUnknownParameterInClosure()
+    public function testUnknownParameterInFunction()
     {
         $this->expectException(NotFoundException::class);
-        $this->expectExceptionMessage('Argument not found for parameter $unknown');
+        $this->expectExceptionMessage('Argument not found for parameter $unknown in ' . __NAMESPACE__ . '\\unknown');
 
         $injector = new Injector;
-        $injector->call(function ($unknown) {
-        });
+        $injector->call(__NAMESPACE__ . '\\unknown');
     }
 
     /**
-     * Test unknown parameter in method
+     * Test Not found exception for unknown parameter in method
      */
     public function testUnknownParameterInMethod()
     {
         $this->expectException(NotFoundException::class);
-        $this->expectExceptionMessage('Argument not found for parameter $unknown');
+        $this->expectExceptionMessage('Argument not found for parameter $unknown in ' . Service::class . '::unknown');
 
-        $object = new class
-        {
-            /**
-             * Method with unknown parameter
-             *
-             * @param mixed $unknown
-             */
-            function method($unknown)
-            {
-            }
-        };
+        $service = new Service;
 
         $injector = new Injector;
-        $injector->call([$object, 'method']);
+        $injector->call([$service, 'unknown']);
     }
 
     /**
@@ -153,10 +151,10 @@ class InjectorTest extends TestCase
      */
     public function testWithArguments()
     {
-        $injector = new Injector;
-        $arguments  = ['id' => 1, 'name' => 'john'];
+        $injector  = new Injector;
+        $arguments = ['id' => 1, 'name' => 'john'];
 
-        $idClosure = function ($id) {
+        $idClosure   = function ($id) {
             return $id;
         };
         $nameClosure = function ($name) {

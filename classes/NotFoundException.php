@@ -1,6 +1,10 @@
 <?php
 namespace Neat\Service;
 
+use ReflectionFunction;
+use ReflectionMethod;
+use ReflectionParameter;
+
 /**
  * Not found exception
  */
@@ -9,19 +13,19 @@ class NotFoundException extends \Exception
     /**
      * Create NotFoundException for parameter
      *
-     * @param \ReflectionParameter|string        $parameter
-     * @param \ReflectionFunctionAbstract|string $function
+     * @param ReflectionParameter|string                 $parameter
+     * @param ReflectionFunction|ReflectionMethod|string $function
      * @return static
      */
     public static function forParameter($parameter, $function)
     {
-        if ($parameter instanceof \ReflectionParameter) {
+        if ($parameter instanceof ReflectionParameter) {
             $parameter = $parameter->getName();
         }
-
-        if ($function instanceof \ReflectionMethod) {
+        if ($function instanceof ReflectionMethod) {
             $function = $function->class . '::' . $function->name;
-        } elseif ($function instanceof \ReflectionFunctionAbstract) {
+        }
+        if ($function instanceof ReflectionFunction) {
             $function = $function->name;
         }
 

@@ -1,9 +1,10 @@
-<?php namespace Phrodo\Application\Test;
+<?php
+namespace Neat\Service\Test;
 
 use PHPUnit\Framework\TestCase;
-use Phrodo\Application\Container;
-use Phrodo\Application\Dispatcher;
-use Phrodo\Application\NotFoundException;
+use Neat\Service\Container;
+use Neat\Service\Injector;
+use Neat\Service\NotFoundException;
 
 class ContainerTest extends TestCase
 {
@@ -18,12 +19,12 @@ class ContainerTest extends TestCase
     }
 
     /**
-     * Test dispatcher access
+     * Test injector access
      */
-    public function testDispatch()
+    public function testInjector()
     {
         $container = new Container;
-        $this->assertInstanceOf(Dispatcher::class, $container->dispatch());
+        $this->assertInstanceOf(Injector::class, $container->injector());
     }
 
     /**
@@ -47,14 +48,14 @@ class ContainerTest extends TestCase
             return new Service;
         };
 
-        $dispatcher = $this->createPartialMock(Dispatcher::class, ['call']);
-        $dispatcher
+        $injector = $this->createPartialMock(Injector::class, ['call']);
+        $injector
             ->expects($this->exactly(2))
             ->method('call')
             ->with($closure)
             ->willReturnCallback($closure);
 
-        $container = new Container($dispatcher);
+        $container = new Container($injector);
         $container->set(Service::class, $closure);
 
         $this->assertInstanceOf(Service::class, $service1 = $container->get(Service::class));
@@ -92,14 +93,14 @@ class ContainerTest extends TestCase
             return new Service;
         };
 
-        $dispatcher = $this->createPartialMock(Dispatcher::class, ['call']);
-        $dispatcher
+        $injector = $this->createPartialMock(Injector::class, ['call']);
+        $injector
             ->expects($this->once())
             ->method('call')
             ->with($closure)
             ->willReturn($closure());
 
-        $container = new Container($dispatcher);
+        $container = new Container($injector);
         $container->set(Service::class, $closure);
         $container->share(Service::class);
 
@@ -113,17 +114,17 @@ class ContainerTest extends TestCase
      */
     public function testServiceProvider()
     {
-        $dispatcher = $this
-            ->getMockBuilder(Dispatcher::class)
+        $injector = $this
+            ->getMockBuilder(Injector::class)
             ->setMethods(['call'])
             ->getMock();
 
-        $dispatcher
+        $injector
             ->expects($this->exactly(2))
             ->method('call')
             ->willReturn(new Service);
 
-        $container = new Container($dispatcher);
+        $container = new Container($injector);
         $container->register(new ServiceProvider);
 
         $this->assertFalse($container->has('boolean'));

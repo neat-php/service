@@ -1,7 +1,8 @@
-<?php namespace Phrodo\Application;
+<?php
+namespace Neat\Service;
 
 /**
- * Application exception class
+ * Not found exception
  */
 class NotFoundException extends \Exception
 {

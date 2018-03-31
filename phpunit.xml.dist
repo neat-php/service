@@ -13,7 +13,7 @@
          verbose="true"
         >
     <testsuites>
-        <testsuite name="Phrodo Test Suite">
+        <testsuite name="Neat Test Suite">
             <directory suffix=".php">tests</directory>
         </testsuite>
     </testsuites>

@@ -1,14 +1,14 @@
-Phrodo Application
-==================
-Phrodo Application service components provide a clean and expressive API for
-your application services.
+Neat Service components
+=======================
+Neat service components provide a clean and expressive API for your application
+to provide and access services.
 
 Getting started
 ---------------
 To install this package, simply issue [composer](https://getcomposer.org) on the
 command line:
 ```
-composer require phrodo/application
+composer require neat/service
 ```
 
 Service Container
@@ -19,7 +19,7 @@ instances using factories and preset instances.
 <?php
 
 // First whip up a new container
-$container = new Phrodo\Application\Container;
+$container = new Neat\Service\Container;
 
 // Then teach it how to create a service
 $container->set(PDO::class, function () {
@@ -38,12 +38,12 @@ To reference a service you won't always want to use the full class name. Not
 just for conveniences sake, but also to decouple your code from its dependency
 implementations.
 ```php
-// Suppose we want to access the Phrodo\Database\Connection service by an alias
-$container->alias(Phrodo\Database\Connection::class, 'db');
+// Suppose we want to access the Neat\Database\Connection service by an alias
+$container->alias(Neat\Database\Connection::class, 'db');
 
 // Now we can access a service by its db alias
 $container->set('db', function() {
-    return new Phrodo\Database\Connection(...);
+    return new Neat\Database\Connection(...);
 });
 
 $db = $container->get('db');
@@ -82,23 +82,3 @@ $container->get(My\Clock::class);
 // Or access the service through its alias (the name of the method)
 $container->get('clock');
 ```
-Configuration
--------------
-To assist with configuration, the included Configuration class provides an
-easy key-value store for configuration parameters. To load your configuration
-data, simply use the set or merge methods or pass the configuration data
-into the constructor.
-
-```php
-$configuration = new Configuration;
-$configuration->set('app_title', 'My app');
-$configuration->merge(parse_ini_file('.env'));
-
-$title = $configuration->get('app_title', 'Default title');
-```
-
-Todo
-----
-- Documentation
-- Repository
-- Event manager

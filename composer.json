@@ -1,7 +1,7 @@
 {
-    "name": "phrodo/application",
-    "description": "Phrodo application",
-    "keywords": ["ioc", "dependency", "injection", "container", "events"],
+    "name": "neat/service",
+    "description": "Neat Service components",
+    "keywords": ["dependency", "service", "injection", "container", "injector", "ioc"],
     "license": "MIT",
     "authors": [
         {
@@ -11,12 +11,12 @@
     ],
     "autoload": {
         "psr-4": {
-            "Phrodo\\Application\\": "classes/"
+            "Neat\\Service\\": "classes/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Phrodo\\Application\\Test\\": "tests/"
+            "Neat\\Service\\Test\\": "tests/"
         }
     },
     "require": {

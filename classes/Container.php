@@ -1,4 +1,5 @@
-<?php namespace Phrodo\Application;
+<?php
+namespace Neat\Service;
 
 /**
  * Service Container class
@@ -34,30 +35,30 @@ class Container
     protected $classes = [];
 
     /**
-     * Dispatcher
+     * Injector
      *
-     * @var Dispatcher
+     * @var Injector
      */
-    protected $dispatch;
+    protected $injector;
 
     /**
      * Constructor
      *
-     * @param Dispatcher $dispatch
+     * @param Injector $injector
      */
-    public function __construct(Dispatcher $dispatch = null)
+    public function __construct(Injector $injector = null)
     {
-        $this->dispatch = ($dispatch ?? new Dispatcher)->withContainer($this);
+        $this->injector = ($injector ?? new Injector)->withContainer($this);
     }
 
     /**
-     * Get the dispatcher
+     * Get the injector
      *
-     * @return Dispatcher
+     * @return Injector
      */
-    public function dispatch()
+    public function injector()
     {
-        return $this->dispatch;
+        return $this->injector;
     }
 
     /**
@@ -94,7 +95,7 @@ class Container
         }
 
         if (isset($this->factories[$class])) {
-            $instance = $this->dispatch->call($this->factories[$class]);
+            $instance = $this->injector->call($this->factories[$class]);
             if ($this->shared[$class] ?? false) {
                 $this->instances[$class] = $instance;
             }
@@ -138,6 +139,7 @@ class Container
      * Register services from a provider
      *
      * @param object $provider
+     * @throws \ReflectionException
      */
     public function register($provider)
     {

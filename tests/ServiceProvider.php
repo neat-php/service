@@ -1,4 +1,5 @@
-<?php namespace Phrodo\Application\Test;
+<?php
+namespace Neat\Service\Test;
 
 use PDO;
 

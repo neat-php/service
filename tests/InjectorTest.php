@@ -1,24 +1,25 @@
-<?php namespace Phrodo\Application\Test;
+<?php
+namespace Neat\Service\Test;
 
 use PHPUnit\Framework\TestCase;
-use Phrodo\Application\Container;
-use Phrodo\Application\Dispatcher;
-use Phrodo\Application\NotFoundException;
+use Neat\Service\Container;
+use Neat\Service\Injector;
+use Neat\Service\NotFoundException;
 
-class DispatcherTest extends TestCase
+class InjectorTest extends TestCase
 {
     /**
      * Test without parameters
      */
     public function testWithoutParameters()
     {
-        $dispatcher = new Dispatcher;
+        $injector = new Injector;
 
-        $this->assertInstanceOf(Service::class, $dispatcher->create(Service::class));
-        $this->assertSame('result', $dispatcher->call(function () {
+        $this->assertInstanceOf(Service::class, $injector->create(Service::class));
+        $this->assertSame('result', $injector->call(function () {
             return 'result';
         }));
-        $this->assertSame(PHP_SAPI, $dispatcher->call('php_sapi_name'));
+        $this->assertSame(PHP_SAPI, $injector->call('php_sapi_name'));
     }
 
     /**
@@ -26,12 +27,12 @@ class DispatcherTest extends TestCase
      */
     public function testObjectParameter()
     {
-        $dispatcher = new Dispatcher;
-        $consumer   = $dispatcher->create(ServiceConsumer::class);
+        $injector = new Injector;
+        $consumer = $injector->create(ServiceConsumer::class);
 
         $this->assertInstanceOf(ServiceConsumer::class, $consumer);
         $this->assertInstanceOf(Service::class, $consumer->getService());
-        $this->assertInstanceOf(Service::class, $dispatcher->call(ServiceConsumer::class . '@getService'));
+        $this->assertInstanceOf(Service::class, $injector->call(ServiceConsumer::class . '@getService'));
     }
 
     /**
@@ -39,9 +40,9 @@ class DispatcherTest extends TestCase
      */
     public function testDefaultParameterValue()
     {
-        $dispatcher = new Dispatcher;
+        $injector = new Injector;
 
-        $this->assertSame('default', $dispatcher->call(function ($default = 'default') {
+        $this->assertSame('default', $injector->call(function ($default = 'default') {
             return $default;
         }));
     }
@@ -51,8 +52,8 @@ class DispatcherTest extends TestCase
      */
     public function testVariadicParameter()
     {
-        $dispatcher = new Dispatcher;
-        $arguments  = $dispatcher->call(function (...$variadic) {
+        $injector = new Injector;
+        $arguments  = $injector->call(function (...$variadic) {
             return count($variadic);
         });
 
@@ -67,8 +68,8 @@ class DispatcherTest extends TestCase
         $this->expectException(NotFoundException::class);
         $this->expectExceptionMessage('Argument not found for parameter $unknown');
 
-        $dispatcher = new Dispatcher;
-        $dispatcher->call(function ($unknown) {
+        $injector = new Injector;
+        $injector->call(function ($unknown) {
         });
     }
 
@@ -92,8 +93,8 @@ class DispatcherTest extends TestCase
             }
         };
 
-        $dispatcher = new Dispatcher;
-        $dispatcher->call([$object, 'method']);
+        $injector = new Injector;
+        $injector->call([$object, 'method']);
     }
 
     /**
@@ -128,20 +129,20 @@ class DispatcherTest extends TestCase
             ->expects($this->never())
             ->method('get');
 
-        $dispatcher = (new Dispatcher)
+        $injector = (new Injector)
             ->withContainer($container)
             ->withContainer($unusedContainer);
 
-        $consumer = $dispatcher->create(ServiceConsumer::class);
+        $consumer = $injector->create(ServiceConsumer::class);
 
         $this->assertInstanceOf(ServiceConsumer::class, $consumer);
         $this->assertSame($service, $consumer->getService());
 
-        $dispatcher = (new Dispatcher)
+        $injector = (new Injector)
             ->withContainer($unusedContainer)
             ->withContainer($container, true);
 
-        $consumer = $dispatcher->create(ServiceConsumer::class);
+        $consumer = $injector->create(ServiceConsumer::class);
 
         $this->assertInstanceOf(ServiceConsumer::class, $consumer);
         $this->assertSame($service, $consumer->getService());
@@ -152,7 +153,7 @@ class DispatcherTest extends TestCase
      */
     public function testWithArguments()
     {
-        $dispatcher = new Dispatcher;
+        $injector = new Injector;
         $arguments  = ['id' => 1, 'name' => 'john'];
 
         $idClosure = function ($id) {
@@ -162,11 +163,11 @@ class DispatcherTest extends TestCase
             return $name;
         };
 
-        $this->assertSame('john', $dispatcher->call($nameClosure, $arguments));
-        $this->assertSame(1, $dispatcher->call($idClosure, $arguments));
+        $this->assertSame('john', $injector->call($nameClosure, $arguments));
+        $this->assertSame(1, $injector->call($idClosure, $arguments));
 
         $service  = new Service;
-        $consumer = $dispatcher->create(ServiceConsumer::class, ['service' => $service]);
+        $consumer = $injector->create(ServiceConsumer::class, ['service' => $service]);
 
         $this->assertSame($service, $consumer->getService());
     }
@@ -176,10 +177,10 @@ class DispatcherTest extends TestCase
      */
     public function testWithNamespace()
     {
-        $dispatcher = (new Dispatcher)->withNamespace(__NAMESPACE__);
+        $injector = (new Injector)->withNamespace(__NAMESPACE__);
 
-        $this->assertInstanceOf(Service::class, $dispatcher->create('Service'));
-        $this->assertInstanceOf(Service::class, $dispatcher->call('ServiceConsumer@getService'));
-        $this->assertInstanceOf(ServiceConsumer::class, $dispatcher->call('ServiceConsumer::create'));
+        $this->assertInstanceOf(Service::class, $injector->create('Service'));
+        $this->assertInstanceOf(Service::class, $injector->call('ServiceConsumer@getService'));
+        $this->assertInstanceOf(ServiceConsumer::class, $injector->call('ServiceConsumer::create'));
     }
 }

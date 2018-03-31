@@ -1,13 +1,14 @@
-<?php namespace Phrodo\Application;
+<?php
+namespace Neat\Service;
 
 use ReflectionClass;
 use ReflectionFunction;
 use ReflectionMethod;
 
 /**
- * Dispatcher class
+ * Injector class
  */
-class Dispatcher
+class Injector
 {
     /**
      * Containers
@@ -78,7 +79,7 @@ class Dispatcher
     }
 
     /**
-     * Dispatch with default namespace
+     * Resolve class names from namespace
      *
      * @param string $namespace
      * @return $this

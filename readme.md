@@ -1,5 +1,8 @@
 Neat Service components
 =======================
+[![Stable Version](https://poser.pugx.org/neat/service/version)](https://packagist.org/packages/neat/service)
+[![Build Status](https://travis-ci.org/neat-php/service.svg?branch=master)](https://travis-ci.org/neat-php/service)
+
 Neat service components provide a clean and expressive API for your application
 to provide and access services.
 

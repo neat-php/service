@@ -1,10 +1,12 @@
 <?php
 namespace Neat\Service;
 
+use Psr\Container\ContainerInterface;
+
 /**
  * Service Container class
  */
-class Container
+class Container implements ContainerInterface
 {
     /**
      * Instances

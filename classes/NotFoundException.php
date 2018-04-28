@@ -1,6 +1,8 @@
 <?php
 namespace Neat\Service;
 
+use Exception;
+use Psr\Container\NotFoundExceptionInterface;
 use ReflectionFunction;
 use ReflectionMethod;
 use ReflectionParameter;
@@ -9,7 +11,7 @@ use Throwable;
 /**
  * Not found exception
  */
-class NotFoundException extends \Exception
+class NotFoundException extends Exception implements NotFoundExceptionInterface
 {
     /**
      * Create NotFoundException for parameter

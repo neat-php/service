@@ -19,8 +19,12 @@
             "Neat\\Service\\Test\\": "tests/"
         }
     },
+    "provide": {
+        "psr/container-implementation": "^1.0"
+    },
     "require": {
-        "php": ">=7.0"
+        "php": ">=7.0",
+        "psr/container": "^1.0"
     },
     "require-dev": {
         "phpunit/phpunit": "^6.3"

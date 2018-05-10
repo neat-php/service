@@ -1,4 +1,5 @@
 <?php
+
 namespace Neat\Service;
 
 use Psr\Container\ContainerInterface;
@@ -105,7 +106,7 @@ class Container implements ContainerInterface
             return $instance;
         }
 
-        throw new NotFoundException('Could not find service '. $class);
+        throw new NotFoundException('Could not find service ' . $class);
     }
 
     /**

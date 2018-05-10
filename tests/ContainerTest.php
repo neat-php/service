@@ -1,10 +1,11 @@
 <?php
+
 namespace Neat\Service\Test;
 
-use PHPUnit\Framework\TestCase;
 use Neat\Service\Container;
 use Neat\Service\Injector;
 use Neat\Service\NotFoundException;
+use PHPUnit\Framework\TestCase;
 
 class ContainerTest extends TestCase
 {

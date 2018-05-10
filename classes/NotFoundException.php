@@ -1,4 +1,5 @@
 <?php
+
 namespace Neat\Service;
 
 use Exception;

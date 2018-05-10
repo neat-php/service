@@ -1,4 +1,5 @@
 <?php
+
 namespace Neat\Service\Test;
 
 use PDO;
@@ -32,7 +33,9 @@ class ServiceProvider
      */
     public function unspecified()
     {
-        return new class {};
+        return new class
+        {
+        };
     }
 
     /**

@@ -65,6 +65,32 @@ class ContainerTest extends TestCase
     }
 
     /**
+     * Test overwriting services
+     */
+    public function testOverwrite()
+    {
+        $service1 = new Service;
+        $service2 = new Service;
+
+        $factory1 = function () use ($service1) {
+            return $service1;
+        };
+
+        $factory2 = function () use ($service2) {
+            return $service2;
+        };
+
+        foreach ([$service1, $factory1] as $first) {
+            foreach ([$service2, $factory2] as $second) {
+                $container = new Container;
+                $container->set('service', $first);
+                $container->set('service', $second);
+                $this->assertSame($service2, $container->get('service'));
+            }
+        }
+    }
+
+    /**
      * Test has unknown service
      */
     public function testHasUnknown()
@@ -75,13 +101,39 @@ class ContainerTest extends TestCase
     }
 
     /**
-     * Test get unknown class
+     * Test get unknown service
      */
     public function testGetUnknown()
     {
         $this->expectException(NotFoundException::class);
 
         $container = new Container;
+        $container->get(Service::class);
+    }
+
+    /**
+     * Test removing a service instance
+     */
+    public function testRemoveInstance()
+    {
+        $this->expectException(NotFoundException::class);
+
+        $container = new Container;
+        $container->set(Service::class, new Service);
+        $container->set(Service::class, null);
+        $container->get(Service::class);
+    }
+
+    /**
+     * Test removing a service factory
+     */
+    public function testRemoveFactory()
+    {
+        $this->expectException(NotFoundException::class);
+
+        $container = new Container;
+        $container->set(Service::class, function () { return new Service; });
+        $container->set(Service::class, null);
         $container->get(Service::class);
     }
 

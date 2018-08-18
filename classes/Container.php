@@ -121,7 +121,9 @@ class Container implements ContainerInterface
 
         if (is_callable($concrete)) {
             $this->factories[$class] = $concrete;
+            $this->instances[$class] = null;
         } else {
+            $this->factories[$class] = null;
             $this->instances[$class] = $concrete;
         }
     }

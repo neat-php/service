@@ -205,16 +205,4 @@ class InjectorTest extends TestCase
 
         $this->assertSame($service, $consumer->getService());
     }
-
-    /**
-     * Test with namespace
-     */
-    public function testWithNamespace()
-    {
-        $injector = (new Injector)->withNamespace(__NAMESPACE__);
-
-        $this->assertInstanceOf(Service::class, $injector->create('Service'));
-        $this->assertInstanceOf(Service::class, $injector->call('ServiceConsumer@getService'));
-        $this->assertInstanceOf(ServiceConsumer::class, $injector->call('ServiceConsumer::create'));
-    }
 }

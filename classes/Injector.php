@@ -20,13 +20,6 @@ class Injector
     protected $containers = [];
 
     /**
-     * Default namespace
-     *
-     * @var string
-     */
-    protected $namespace;
-
-    /**
      * Call the given closure, method or function
      *
      * @param callable $closure
@@ -53,7 +46,6 @@ class Injector
      */
     public function create($class, array $named = [])
     {
-        $class      = $this->getClass($class);
         $reflection = $this->getConstructorReflection($class);
         $arguments  = $reflection ? $this->getArguments($reflection, $named) : [];
 
@@ -76,20 +68,6 @@ class Injector
         } else {
             array_push($clone->containers, $container);
         }
-
-        return $clone;
-    }
-
-    /**
-     * Resolve class names from namespace
-     *
-     * @param string $namespace
-     * @return $this
-     */
-    public function withNamespace($namespace)
-    {
-        $clone = clone $this;
-        $clone->namespace = trim($namespace, '\\');
 
         return $clone;
     }
@@ -141,30 +119,15 @@ class Injector
         if (strpos($closure, '@') !== false) {
             list($class, $method) = explode('@', $closure);
 
-            return [$this->getObject($this->getClass($class)), $method];
+            return [$this->getObject($class), $method];
         }
         if (strpos($closure, '::') !== false) {
             list($class, $method) = explode('::', $closure);
 
-            return [$this->getClass($class), $method];
+            return [$class, $method];
         }
 
         return $closure;
-    }
-
-    /**
-     * Get a class with namespace
-     *
-     * @param string $class
-     * @return string
-     */
-    protected function getClass($class)
-    {
-        if ($this->namespace && strpos($class, '\\') === false) {
-            return $this->namespace . '\\' . $class;
-        }
-
-        return $class;
     }
 
     /**

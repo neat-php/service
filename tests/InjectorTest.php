@@ -26,6 +26,8 @@ class InjectorTest extends TestCase
         $injector = new Injector;
 
         $this->assertInstanceOf(Service::class, $injector->create(Service::class));
+        $this->assertInstanceOf(Service::class, $injector->call(Service::class . '::factory'));
+        $this->assertInstanceOf(Service::class, $injector->call([Service::class, 'factory']));
         $this->assertSame('result', $injector->call(function () {
             return 'result';
         }));

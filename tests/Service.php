@@ -12,4 +12,14 @@ class Service
     public function unknown($unknown)
     {
     }
+
+    /**
+     * Static factory method
+     *
+     * @return Service
+     */
+    public static function factory()
+    {
+        return new static;
+    }
 }

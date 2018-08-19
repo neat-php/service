@@ -3,7 +3,6 @@
 namespace Neat\Service\Test;
 
 use Neat\Service\Container;
-use Neat\Service\Injector;
 use Neat\Service\NotFoundException;
 use PHPUnit\Framework\TestCase;
 
@@ -17,15 +16,6 @@ class ContainerTest extends TestCase
         $container = new Container;
 
         $this->assertFalse($container->has(Container::class));
-    }
-
-    /**
-     * Test injector access
-     */
-    public function testInjector()
-    {
-        $container = new Container;
-        $this->assertInstanceOf(Injector::class, $container->injector());
     }
 
     /**
@@ -49,14 +39,7 @@ class ContainerTest extends TestCase
             return new Service;
         };
 
-        $injector = $this->createPartialMock(Injector::class, ['call']);
-        $injector
-            ->expects($this->exactly(2))
-            ->method('call')
-            ->with($closure)
-            ->willReturnCallback($closure);
-
-        $container = new Container($injector);
+        $container = new Container();
         $container->set(Service::class, $closure);
 
         $this->assertInstanceOf(Service::class, $service1 = $container->get(Service::class));
@@ -138,6 +121,20 @@ class ContainerTest extends TestCase
     }
 
     /**
+     * Test get or create
+     */
+    public function testGetOrCreate()
+    {
+        $service = new Service;
+
+        $container = new Container;
+        $this->assertInstanceOf(Service::class, $container->getOrCreate(Service::class));
+
+        $container->set(Service::class, function () use ($service) { return $service; });
+        $this->assertSame($service, $container->getOrCreate(Service::class));
+    }
+
+    /**
      * Test sharing a service instance
      */
     public function testShare()
@@ -146,14 +143,7 @@ class ContainerTest extends TestCase
             return new Service;
         };
 
-        $injector = $this->createPartialMock(Injector::class, ['call']);
-        $injector
-            ->expects($this->once())
-            ->method('call')
-            ->with($closure)
-            ->willReturn($closure());
-
-        $container = new Container($injector);
+        $container = new Container();
         $container->set(Service::class, $closure);
         $container->share(Service::class);
 
@@ -167,17 +157,7 @@ class ContainerTest extends TestCase
      */
     public function testServiceProvider()
     {
-        $injector = $this
-            ->getMockBuilder(Injector::class)
-            ->setMethods(['call'])
-            ->getMock();
-
-        $injector
-            ->expects($this->exactly(2))
-            ->method('call')
-            ->willReturn(new Service);
-
-        $container = new Container($injector);
+        $container = new Container();
         $container->register(new ServiceProvider);
 
         $this->assertFalse($container->has('boolean'));

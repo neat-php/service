@@ -3,6 +3,10 @@
 namespace Neat\Service;
 
 use Psr\Container\ContainerInterface;
+use ReflectionClass;
+use ReflectionException;
+use ReflectionFunction;
+use ReflectionMethod;
 
 /**
  * Service Container class
@@ -38,39 +42,10 @@ class Container implements ContainerInterface
     protected $classes = [];
 
     /**
-     * Injector
+     * Has service instance or factory?
      *
-     * @var Injector
-     */
-    protected $injector;
-
-    /**
-     * Constructor
-     *
-     * @param Injector $injector
-     */
-    public function __construct(Injector $injector = null)
-    {
-        $this->injector = ($injector ?? new Injector)->withContainer($this);
-    }
-
-    /**
-     * Get the injector
-     *
-     * @return Injector
-     */
-    public function injector()
-    {
-        return $this->injector;
-    }
-
-    /**
-     * Can the container produce an instance for this service?
-     *
-     * The service can either be a class name, interface name or other alias
-     *
-     * @param string $service
-     * @return bool
+     * @param string $service Class name, interface name or other alias
+     * @return bool Only true when the service was explicitly set
      */
     public function has($service)
     {
@@ -81,13 +56,11 @@ class Container implements ContainerInterface
     }
 
     /**
-     * Get or create a service instance
+     * Get service instance
      *
-     * The service can either be an interface name, class name or alias
-     *
-     * @param string $service
+     * @param string $service Class name, interface name or other alias
      * @return object
-     * @throws NotFoundException
+     * @throws NotFoundException when the service was not explicitly set
      */
     public function get($service)
     {
@@ -98,7 +71,7 @@ class Container implements ContainerInterface
         }
 
         if (isset($this->factories[$class])) {
-            $instance = $this->injector->call($this->factories[$class]);
+            $instance = $this->call($this->factories[$class]);
             if ($this->shared[$class] ?? false) {
                 $this->instances[$class] = $instance;
             }
@@ -107,6 +80,24 @@ class Container implements ContainerInterface
         }
 
         throw new NotFoundException('Could not find service ' . $class);
+    }
+
+    /**
+     * Get or create service instance
+     *
+     * @param string $service Class name, interface name or other alias
+     * @return object
+     * @throws NotFoundException
+     */
+    public function getOrCreate($service)
+    {
+        $class = $this->resolve($service);
+
+        if ($this->has($class)) {
+            return $this->get($class);
+        }
+
+        return $this->create($class);
     }
 
     /**
@@ -190,5 +181,134 @@ class Container implements ContainerInterface
     public function resolve($service)
     {
         return $this->classes[$service] ?? $service;
+    }
+
+    /**
+     * Call the given closure, method or function
+     *
+     * @param callable $closure
+     * @param array    $named
+     * @return mixed
+     * @throws NotFoundException
+     */
+    public function call($closure, array $named = [])
+    {
+        $callable   = $this->getCallable($closure);
+        $reflection = $this->getCallableReflection($callable);
+        $arguments  = $this->getArguments($reflection, $named);
+
+        return $callable(...$arguments);
+    }
+
+    /**
+     * Create an object of the given class
+     *
+     * @param string $class
+     * @param array  $named
+     * @return object
+     * @throws NotFoundException
+     */
+    public function create($class, array $named = [])
+    {
+        $reflection = $this->getConstructorReflection($class);
+        $arguments  = $reflection ? $this->getArguments($reflection, $named) : [];
+
+        return new $class(...$arguments);
+    }
+
+    /**
+     * Get arguments for reflected function or method
+     *
+     * @param ReflectionFunction|ReflectionMethod $reflection
+     * @param array                               $named
+     * @return array
+     * @throws NotFoundException
+     */
+    protected function getArguments($reflection, array $named = [])
+    {
+        $arguments = [];
+        foreach ($reflection->getParameters() as $parameter) {
+            if (array_key_exists($parameter->name, $named)) {
+                $arguments[] = $named[$parameter->name];
+            } elseif ($class = $parameter->getClass()) {
+                $arguments[] = $this->getOrCreate($class->name);
+            } elseif ($parameter->isDefaultValueAvailable()) {
+                $arguments[] = $parameter->getDefaultValue();
+            } elseif ($parameter->isVariadic()) {
+                break;
+            } else {
+                throw NotFoundException::forParameter($parameter, $reflection);
+            }
+        }
+
+        return $arguments;
+    }
+
+    /**
+     * Get callable
+     *
+     * Converts to standard array-based callable:
+     * "class@method" format
+     * "class::method" format
+     *
+     * @param callable|string $closure
+     * @return callable
+     * @throws NotFoundException
+     */
+    protected function getCallable($closure)
+    {
+        if (!is_string($closure)) {
+            return $closure;
+        }
+        if (strpos($closure, '@') !== false) {
+            list($class, $method) = explode('@', $closure);
+
+            return [$this->getOrCreate($class), $method];
+        }
+        if (strpos($closure, '::') !== false) {
+            list($class, $method) = explode('::', $closure);
+
+            return [$class, $method];
+        }
+
+        return $closure;
+    }
+
+    /**
+     * Get callable reflection
+     *
+     * @param callable $callable
+     * @return ReflectionFunction|ReflectionMethod
+     * @throws NotFoundException
+     */
+    protected function getCallableReflection($callable)
+    {
+        try {
+            if (is_array($callable)) {
+                return new ReflectionMethod($callable[0], $callable[1]);
+            }
+
+            return new ReflectionFunction($callable);
+        } catch (ReflectionException $e) {
+            throw NotFoundException::forException($e);
+        }
+    }
+
+    /**
+     * Get constructor reflection
+     *
+     * @param string $class
+     * @return ReflectionMethod|null
+     * @throws NotFoundException
+     */
+    protected function getConstructorReflection($class)
+    {
+        try {
+            $reflection = new ReflectionClass($class);
+
+            return $reflection->getConstructor();
+        } catch (ReflectionException $e) {
+            throw NotFoundException::forException($e);
+        }
     }
 }

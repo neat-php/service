@@ -1,6 +1,7 @@
 {
     "name": "neat/service",
     "description": "Neat Service components",
+    "type": "library",
     "keywords": ["dependency", "service", "injection", "container", "injector", "ioc"],
     "license": "MIT",
     "authors": [

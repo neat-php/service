@@ -4,7 +4,8 @@ Neat Service components
 [![Build Status](https://travis-ci.org/neat-php/service.svg?branch=master)](https://travis-ci.org/neat-php/service)
 
 Neat service components provide a clean and expressive API for your application
-to provide and access services.
+to provide, access and inject services and other dependencies. The [PSR-11](https://www.php-fig.org/psr/psr-11/)
+container interface is implemented for optimal interoperability.
 
 Getting started
 ---------------
@@ -54,7 +55,6 @@ $db = $container->get('db');
 You can also use aliases to make a service available by an interface name. This
 will come in handy when using dependency injection.
 
-
 Service providers
 -----------------
 To help you setup multiple services, you can define a service provider which is
@@ -84,4 +84,30 @@ $container->get(My\Clock::class);
 
 // Or access the service through its alias (the name of the method)
 $container->get('clock');
+```
+
+Dependency injection
+--------------------
+The container can also create objects and call methods for you with a
+technique called auto-wiring. This means it will detect, resolve and inject
+dependencies automatically based on method signatures and parameter types.
+```php
+// Assuming your container can produce a PDO and User object instance
+class Blog
+{
+    public function __construct(PDO $db) { ... }
+    public function getPosts(User $author, string $tag = null) { ... }
+}
+
+// You'd create a controller and automatically inject the PDO object
+$blog = $container->create(Blog::class);
+
+// Call the getPosts method and have it receive the User object
+$posts = $container->call([$blog, 'getPosts']);
+
+// You can combine these two calls into one invocation
+$posts = $container->call('Blog@getPosts');
+
+// And pass any arguments you wish to specify or override
+$sportsPosts = $container->call('Blog@getPosts', ['tag' => 'sports']);
 ```

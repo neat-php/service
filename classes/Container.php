@@ -151,7 +151,7 @@ class Container implements ContainerInterface
                 continue;
             }
 
-            $class = $return->getName();
+            $class = (string) $return;
 
             $this->classes[$method->name] = $class;
             $this->factories[$class]      = $method->getClosure($provider);

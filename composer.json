@@ -2,7 +2,14 @@
     "name": "neat/service",
     "description": "Neat Service components",
     "type": "library",
-    "keywords": ["dependency", "service", "injection", "container", "injector", "ioc"],
+    "keywords": [
+        "dependency",
+        "service",
+        "injection",
+        "container",
+        "injector",
+        "ioc"
+    ],
     "license": "MIT",
     "authors": [
         {
@@ -28,6 +35,6 @@
         "psr/container": "^1.0"
     },
     "require-dev": {
-        "phpunit/phpunit": "^6.0"
+        "phpunit/phpunit": "^6.0 || ^7.0 || ^8.0"
     }
 }

@@ -151,7 +151,8 @@ class Container implements ContainerInterface
                 continue;
             }
 
-            $class = $return->getName();
+            // TODO Just use $return->getName() when PHP 7.0 support is dropped.
+            $class = method_exists($return, 'getName') ? $return->getName() : (string) $return;
 
             $this->classes[$method->name] = $class;
             $this->factories[$class]      = $method->getClosure($provider);

@@ -151,7 +151,7 @@ class Container implements ContainerInterface
                 continue;
             }
 
-            $class = (string) $return;
+            $class = $return->getName();
 
             $this->classes[$method->name] = $class;
             $this->factories[$class]      = $method->getClosure($provider);
@@ -216,6 +216,7 @@ class Container implements ContainerInterface
         return new $class(...$arguments);
     }
 
+    /** @noinspection PhpDocMissingThrowsInspection */
     /**
      * Get arguments for reflected function or method
      *
@@ -233,6 +234,7 @@ class Container implements ContainerInterface
             } elseif ($class = $parameter->getClass()) {
                 $arguments[] = $this->getOrCreate($class->name);
             } elseif ($parameter->isDefaultValueAvailable()) {
+                /** @noinspection PhpUnhandledExceptionInspection */
                 $arguments[] = $parameter->getDefaultValue();
             } elseif ($parameter->isVariadic()) {
                 break;

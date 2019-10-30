@@ -101,6 +101,19 @@ class Container implements ContainerInterface
     }
 
     /**
+     * Get service factory
+     *
+     * @param string $service Class name, interface name or other alias
+     * @return callable
+     */
+    public function factory($service): callable
+    {
+        return function () use ($service) {
+            return $this->get($service);
+        };
+    }
+
+    /**
      * Set a service instance, factory or class name
      *
      * @param string                 $service

@@ -45,6 +45,10 @@ class ContainerTest extends TestCase
         $this->assertInstanceOf(Service::class, $service1 = $container->get(Service::class));
         $this->assertInstanceOf(Service::class, $service2 = $container->get(Service::class));
         $this->assertNotSame($service1, $service2);
+
+        $factory = $container->factory(Service::class);
+        $this->assertIsCallable($factory);
+        $this->assertInstanceOf(Service::class, $factory());
     }
 
     /**

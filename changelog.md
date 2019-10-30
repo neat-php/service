@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [0.2.1] - 2019-10-30
+### Added
+- Aliases interface. Allows retrieving aliases from a service provider.
+- Shares interface. Allows service providers to configure shared services as well.
+
 ## [0.2.0] - 2018-10-14
 ### Added
 - ```getOrCreate``` method to the Container.

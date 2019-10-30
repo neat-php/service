@@ -157,6 +157,37 @@ class Container implements ContainerInterface
             $this->classes[$method->name] = $class;
             $this->factories[$class]      = $method->getClosure($provider);
         }
+
+        if ($provider instanceof Aliases) {
+            $this->registerAliases($provider);
+        }
+        if ($provider instanceof Shares) {
+            $this->registerShares($provider);
+        }
+    }
+
+    /**
+     * Register aliases
+     *
+     * @param Aliases $provider
+     */
+    protected function registerAliases(Aliases $provider)
+    {
+        foreach ($provider->aliases() as $service => $class) {
+            $this->alias($service, $class);
+        }
+    }
+
+    /**
+     * Register shares
+     *
+     * @param Shares $provider
+     */
+    protected function registerShares(Shares $provider)
+    {
+        foreach ($provider->shares() as $service) {
+            $this->share($service);
+        }
     }
 
     /**

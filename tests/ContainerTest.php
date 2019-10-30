@@ -168,6 +168,35 @@ class ContainerTest extends TestCase
         $this->assertTrue($container->has(Service::class));
         $this->assertInstanceOf(Service::class, $container->get(Service::class));
         $this->assertInstanceOf(Service::class, $container->get('db'));
+        $this->assertNotSame(
+            $container->get(Service::class),
+            $container->get(Service::class)
+        );
+    }
+
+    /**
+     * Test aliases provider
+     */
+    public function testAliasesProvider()
+    {
+        $container = new Container();
+        $container->register(new AliasesProvider());
+
+        $this->assertSame(Service::class, $container->resolve('svc'));
+    }
+
+    /**
+     * Test shares provider
+     */
+    public function testSharesProvider()
+    {
+        $container = new Container();
+        $container->register(new SharesProvider());
+
+        $this->assertSame(
+            $container->get(Service::class),
+            $container->get(Service::class)
+        );
     }
 
     /**

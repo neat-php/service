@@ -3,12 +3,13 @@
     "description": "Neat Service components",
     "type": "library",
     "keywords": [
-        "dependency",
+        "psr-11",
+        "neat",
         "service",
-        "injection",
         "container",
-        "injector",
-        "ioc"
+        "di",
+        "dependency",
+        "injection"
     ],
     "license": "MIT",
     "authors": [

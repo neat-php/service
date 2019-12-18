@@ -79,7 +79,7 @@ class Services
 }
 
 // Now register the service provider
-$container->register(new Services);
+$container->register(new Services());
 
 // To get my clock you would simply use
 $container->get(Example\Clock::class);

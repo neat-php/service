@@ -20,10 +20,8 @@ Service Container
 The included service container allows you to register and retrieve service
 instances using factories and preset instances.
 ```php
-<?php
-
 // First whip up a new container
-$container = new Neat\Service\Container;
+$container = new Neat\Service\Container();
 
 // Then teach it how to create a service
 $container->set(PDO::class, function () {
@@ -42,12 +40,14 @@ To reference a service you won't always want to use the full class name. Not
 just for conveniences sake, but also to decouple your code from its dependency
 implementations.
 ```php
+/** @var Neat\Service\Container $container */
+
 // Suppose we want to access the Neat\Database\Connection service by an alias
-$container->alias(Neat\Database\Connection::class, 'db');
+$container->alias(PDO::class, 'db');
 
 // Now we can access a service by its db alias
 $container->set('db', function() {
-    return new Neat\Database\Connection(...);
+    return new PDO('sqlite:memory');
 });
 
 $db = $container->get('db');
@@ -61,6 +61,8 @@ To help you setup multiple services, you can define a service provider which is
 nothing more than an object with public service factory methods.
 
 ```php
+/** @var Neat\Service\Container $container */
+
 class Services
 {
     public function now(): DateTime
@@ -70,9 +72,9 @@ class Services
 
     // Notice how this depends on the service above, the container will
     // automatically resolve this dependency for us.
-    public function clock(DateTime $time): My\Clock
+    public function clock(DateTime $time): Example\Clock
     {
-        return new My\Clock($time)
+        return new Example\Clock($time);
     }
 }
 
@@ -80,7 +82,7 @@ class Services
 $container->register(new Services);
 
 // To get my clock you would simply use
-$container->get(My\Clock::class);
+$container->get(Example\Clock::class);
 
 // Or access the service through its alias (the name of the method)
 $container->get('clock');
@@ -92,22 +94,32 @@ The container can also create objects and call methods for you with a
 technique called auto-wiring. This means it will detect, resolve and inject
 dependencies automatically based on method signatures and parameter types.
 ```php
-// Assuming your container can produce a PDO and User object instance
-class Blog
+/** @var Neat\Service\Container $container */
+
+// Assuming your container can produce a PDO and Clock object instance
+class BlogController
 {
-    public function __construct(PDO $db) { ... }
-    public function getPosts(User $author, string $tag = null) { ... }
+    private $db;
+
+    public function __construct(PDO $db)
+    {
+        $this->db = $db;
+    }
+
+    public function getPosts(Example\Clock $clock, string $tag = null) {
+        // ...
+    }
 }
 
 // You'd create a controller and automatically inject the PDO object
-$blog = $container->create(Blog::class);
+$blog = $container->create(BlogController::class);
 
-// Call the getPosts method and have it receive the User object
+// Call the getPosts method and have it receive the Clock object
 $posts = $container->call([$blog, 'getPosts']);
 
 // You can combine these two calls into one invocation
-$posts = $container->call('Blog@getPosts');
+$posts = $container->call('BlogController@getPosts');
 
 // And pass any arguments you wish to specify or override
-$sportsPosts = $container->call('Blog@getPosts', ['tag' => 'sports']);
+$sportsPosts = $container->call('BlogController@getPosts', ['tag' => 'sports']);
 ```

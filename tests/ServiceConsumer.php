@@ -7,7 +7,7 @@ class ServiceConsumer
     /**
      * Service
      *
-     * @var Service
+     * @var Service|null
      */
     private $service;
 
@@ -16,7 +16,7 @@ class ServiceConsumer
      *
      * @param Service $service
      */
-    public function __construct(Service $service)
+    public function __construct(Service $service = null)
     {
         $this->service = $service;
     }
@@ -24,7 +24,7 @@ class ServiceConsumer
     /**
      * Get Service
      *
-     * @return Service
+     * @return Service|null
      */
     public function getService()
     {

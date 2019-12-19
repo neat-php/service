@@ -39,11 +39,26 @@ class InjectionTest extends TestCase
     public function testObjectParameter()
     {
         $container = new Container;
-        $consumer  = $container->create(ServiceConsumer::class);
+        $container->set(Service::class, new Service());
+
+        $consumer = $container->create(ServiceConsumer::class);
 
         $this->assertInstanceOf(ServiceConsumer::class, $consumer);
         $this->assertInstanceOf(Service::class, $consumer->getService());
         $this->assertInstanceOf(Service::class, $container->call(ServiceConsumer::class . '@getService'));
+    }
+
+    /**
+     * Test object parameter
+     */
+    public function testNullableObjectParameter()
+    {
+        $container = new Container;
+
+        $consumer = $container->create(ServiceConsumer::class);
+
+        $this->assertInstanceOf(ServiceConsumer::class, $consumer);
+        $this->assertNull($consumer->getService());
     }
 
     /**

@@ -261,7 +261,6 @@ class Container implements ContainerInterface
         return new $class(...$arguments);
     }
 
-    /** @noinspection PhpDocMissingThrowsInspection */
     /**
      * Get arguments for reflected function or method
      *
@@ -269,18 +268,21 @@ class Container implements ContainerInterface
      * @param array                               $named
      * @return array
      * @throws NotFoundException
+     * @noinspection PhpDocMissingThrowsInspection
      */
     protected function getArguments($reflection, array $named = [])
     {
         $arguments = [];
         foreach ($reflection->getParameters() as $parameter) {
+            $class = $parameter->getClass();
             if (array_key_exists($parameter->name, $named)) {
                 $arguments[] = $named[$parameter->name];
-            } elseif ($class = $parameter->getClass()) {
-                $arguments[] = $this->getOrCreate($class->name);
+            } elseif ($class && $this->has($class->name)) {
+                $arguments[] = $this->get($class->name);
             } elseif ($parameter->isDefaultValueAvailable()) {
-                /** @noinspection PhpUnhandledExceptionInspection */
                 $arguments[] = $parameter->getDefaultValue();
+            } elseif ($class) {
+                $arguments[] = $this->getOrCreate($class->name);
             } elseif ($parameter->isVariadic()) {
                 break;
             } else {

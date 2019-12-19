@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [0.3.0] - 2019-12-18
+### Changed
+- Use argument default values for types that aren't known by the container.
+
 ## [0.2.2] - 2019-10-30
 ### Added
 - Factory method for retrieving a service factory from the container.

@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [0.3.1] - 2019-12-31
+### Fixed
+- Support for invoking callable objects with an __invoke method.
+
 ## [0.3.0] - 2019-12-18
 ### Changed
 - Use argument default values for types that aren't known by the container.

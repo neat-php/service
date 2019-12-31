@@ -74,6 +74,22 @@ class InjectionTest extends TestCase
     }
 
     /**
+     * Test default parameter value
+     */
+    public function testDefaultParameterValueInObject()
+    {
+        $container = new Container;
+        $invokable = new class () {
+            public function __invoke($default = 'default')
+            {
+                return $default;
+            }
+        };
+
+        $this->assertSame('default', $container->call($invokable));
+    }
+
+    /**
      * Test variadic parameter
      */
     public function testVariadicParameter()

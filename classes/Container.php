@@ -2,6 +2,7 @@
 
 namespace Neat\Service;
 
+use Closure;
 use Psr\Container\ContainerInterface;
 use ReflectionClass;
 use ReflectionException;
@@ -335,6 +336,9 @@ class Container implements ContainerInterface
         try {
             if (is_array($callable)) {
                 return new ReflectionMethod($callable[0], $callable[1]);
+            }
+            if (is_object($callable) && !$callable instanceof Closure) {
+                return new ReflectionMethod($callable, '__invoke');
             }
 
             return new ReflectionFunction($callable);

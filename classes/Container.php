@@ -29,6 +29,13 @@ class Container implements ContainerInterface
     protected $factories = [];
 
     /**
+     * Extensions
+     *
+     * @var callable[]
+     */
+    protected $extensions = [];
+
+    /**
      * Shared classes/factories
      *
      * @var bool[]
@@ -73,6 +80,9 @@ class Container implements ContainerInterface
 
         if (isset($this->factories[$class])) {
             $instance = $this->call($this->factories[$class]);
+            foreach ($this->extensions[$class] ?? [] as $extension) {
+                $instance = $extension($instance);
+            }
             if ($this->shared[$class] ?? false) {
                 $this->instances[$class] = $instance;
             }
@@ -130,6 +140,30 @@ class Container implements ContainerInterface
         } else {
             $this->factories[$class] = null;
             $this->instances[$class] = $concrete;
+        }
+    }
+
+    /**
+     * Extend a service
+     *
+     * @param string   $service
+     * @param callable $extension
+     * @param string   $parameter
+     */
+    public function extend($service, $extension, $parameter = 'service')
+    {
+        $class = $this->resolve($service);
+
+        $this->extensions[$class][] = function ($instance) use ($extension, $parameter) {
+            return $this->call($extension, [$parameter => $instance]);
+        };
+
+        if ($instance = $this->instances[$class] ?? null) {
+            $this->shared[$class]    = true;
+            $this->instances[$class] = null;
+            $this->factories[$class] = function () use ($instance, $extension, $parameter) {
+                return $instance;
+            };
         }
     }
 
@@ -259,7 +293,12 @@ class Container implements ContainerInterface
         $reflection = $this->getConstructorReflection($class);
         $arguments  = $reflection ? $this->getArguments($reflection, $named) : [];
 
-        return new $class(...$arguments);
+        $instance = new $class(...$arguments);
+        foreach ($this->extensions[$class] ?? [] as $extension) {
+            $instance = $extension($instance);
+        }
+
+        return $instance;
     }
 
     /**

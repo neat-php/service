@@ -223,4 +223,124 @@ class ContainerTest extends TestCase
 
         $this->assertSame(Service::class, $container->resolve('db'));
     }
+
+    /**
+     * Test extending a instance instance
+     */
+    public function testExtendInstance()
+    {
+        $original = new Service();
+        $extended = new Service();
+
+        $extensionCalls = 0;
+
+        $container = new Container;
+        $container->set(Service::class, $original);
+        $container->extend(Service::class, function (Service $service) use ($original, $extended, &$extensionCalls): Service {
+            $extensionCalls++;
+
+            $this->assertSame($original, $service);
+
+            return $extended;
+        });
+
+        $this->assertSame(0, $extensionCalls);
+        $this->assertTrue($container->has(Service::class));
+        $this->assertSame($extended, $container->get(Service::class));
+        $this->assertSame(1, $extensionCalls);
+    }
+
+    /**
+     * Test extending a service defined by a factory
+     */
+    public function testExtendFactory()
+    {
+        $original = new Service();
+        $extended = new Service();
+
+        $factoryCalls   = 0;
+        $extensionCalls = 0;
+
+        $container = new Container;
+        $container->set(Service::class, function () use ($original, &$factoryCalls) {
+            $factoryCalls++;
+
+            return $original;
+        });
+        $container->extend(Service::class, function (Service $service) use ($original, $extended, &$extensionCalls): Service {
+            $extensionCalls++;
+
+            $this->assertSame($original, $service);
+
+            return $extended;
+        });
+
+        $this->assertSame(0, $factoryCalls);
+        $this->assertSame(0, $extensionCalls);
+        $this->assertTrue($container->has(Service::class));
+        $this->assertSame($extended, $container->get(Service::class));
+        $this->assertSame(1, $factoryCalls);
+        $this->assertSame(1, $extensionCalls);
+    }
+
+    /**
+     * Test extending an unknown service
+     */
+    public function testExtendUnknown()
+    {
+        $extended = new Service();
+
+        $extensionCalls = 0;
+
+        $container = new Container;
+        $container->extend(Service::class, function (Service $service) use ($extended, &$extensionCalls): Service {
+            $extensionCalls++;
+
+            $this->assertInstanceOf(Service::class, $service);
+
+            return $extended;
+        });
+
+        $this->assertSame(0, $extensionCalls);
+        $this->assertFalse($container->has(Service::class));
+        $this->assertSame($extended, $container->getOrCreate(Service::class));
+        $this->assertSame(1, $extensionCalls);
+    }
+
+    /**
+     * Test extending a service multiple times
+     */
+    public function testExtendMultiple()
+    {
+        $original  = new Service();
+        $extended1 = new Service();
+        $extended2 = new Service();
+
+        $extension1Calls = 0;
+        $extension2Calls = 0;
+
+        $container = new Container;
+        $container->set(Service::class, $original);
+        $container->extend(Service::class, function (Service $service) use ($extended1, $original, &$extension1Calls): Service {
+            $extension1Calls++;
+
+            $this->assertSame($original, $service);
+
+            return $extended1;
+        });
+        $container->extend(Service::class, function (Service $service) use ($extended2, $extended1, &$extension2Calls): Service {
+            $extension2Calls++;
+
+            $this->assertSame($extended1, $service);
+
+            return $extended2;
+        });
+
+        $this->assertSame(0, $extension1Calls);
+        $this->assertSame(0, $extension2Calls);
+        $this->assertTrue($container->has(Service::class));
+        $this->assertSame($extended2, $container->get(Service::class));
+        $this->assertSame(1, $extension1Calls);
+        $this->assertSame(1, $extension2Calls);
+    }
 }

@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+
+## [0.3.2] - 2020-05-15
 ### Added
 - Code coverage button in readme.
 - Extend services using the $container->extend($service, $extension, $parameter) method. [#5](https://github.com/neat-php/service/issues/5)

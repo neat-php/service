@@ -6,10 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 ### Added
-- Extend services using the $container->extend($service, $extension, $parameter) method.
+- Code coverage button in readme.
+- Extend services using the $container->extend($service, $extension, $parameter) method. [#5](https://github.com/neat-php/service/issues/5)
 
 ### Fixed
-- Service sharing doesn't work with auto-wiring [#6](https://github.com/neat-php/service/issues/6)
+- Full code coverage.
+- Service sharing doesn't work with auto-wiring. [#6](https://github.com/neat-php/service/issues/6)
 
 ## [0.3.1] - 2019-12-31
 ### Fixed

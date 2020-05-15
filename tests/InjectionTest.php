@@ -67,6 +67,19 @@ class InjectionTest extends TestCase
     }
 
     /**
+     * Test object parameter
+     */
+    public function testUnknownObjectParameter()
+    {
+        $container = new Container();
+        $service = $container->call(function (Service $service) {
+            return $service;
+        });
+
+        $this->assertInstanceOf(Service::class, $service);
+    }
+
+    /**
      * Test default parameter value
      */
     public function testDefaultParameterValue()

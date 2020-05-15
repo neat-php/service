@@ -109,8 +109,8 @@ class Container implements ContainerInterface
         }
 
         $instance = $this->create($class);
-        if (isset($this->shared[$class])) {
-            $this->set($class, $instance);
+        if ($this->shared[$class] ?? false) {
+            $this->instances[$class] = $instance;
         }
 
         return $instance;

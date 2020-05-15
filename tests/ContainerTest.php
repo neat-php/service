@@ -23,7 +23,7 @@ class ContainerTest extends TestCase
      */
     public function testInstance()
     {
-        $service = new Service();
+        $service   = new Service();
         $container = new Container();
         $container->set(Service::class, $service);
 

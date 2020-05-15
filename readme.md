@@ -20,6 +20,8 @@ Service Container
 The included service container allows you to register and retrieve service
 instances using factories and preset instances.
 ```php
+<?php
+
 // First whip up a new container
 $container = new Neat\Service\Container();
 
@@ -40,6 +42,8 @@ To reference a service you won't always want to use the full class name. Not
 just for conveniences sake, but also to decouple your code from its dependency
 implementations.
 ```php
+<?php
+
 /** @var Neat\Service\Container $container */
 
 // Suppose we want to access the Neat\Database\Connection service by an alias
@@ -61,6 +65,8 @@ To help you setup multiple services, you can define a service provider which is
 nothing more than an object with public service factory methods.
 
 ```php
+<?php
+
 /** @var Neat\Service\Container $container */
 
 class Services
@@ -94,6 +100,8 @@ The container can also create objects and call methods for you with a
 technique called auto-wiring. This means it will detect, resolve and inject
 dependencies automatically based on method signatures and parameter types.
 ```php
+<?php
+
 /** @var Neat\Service\Container $container */
 
 // Assuming your container can produce a PDO and Clock object instance

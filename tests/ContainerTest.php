@@ -13,7 +13,7 @@ class ContainerTest extends TestCase
      */
     public function testEmpty()
     {
-        $container = new Container;
+        $container = new Container();
 
         $this->assertFalse($container->has(Container::class));
     }
@@ -23,7 +23,7 @@ class ContainerTest extends TestCase
      */
     public function testInstance()
     {
-        $service   = new Service;
+        $service = new Service();
         $container = new Container();
         $container->set(Service::class, $service);
 
@@ -36,7 +36,7 @@ class ContainerTest extends TestCase
     public function testFactory()
     {
         $closure = function () {
-            return new Service;
+            return new Service();
         };
 
         $container = new Container();
@@ -56,8 +56,8 @@ class ContainerTest extends TestCase
      */
     public function testOverwrite()
     {
-        $service1 = new Service;
-        $service2 = new Service;
+        $service1 = new Service();
+        $service2 = new Service();
 
         $factory1 = function () use ($service1) {
             return $service1;
@@ -69,7 +69,7 @@ class ContainerTest extends TestCase
 
         foreach ([$service1, $factory1] as $first) {
             foreach ([$service2, $factory2] as $second) {
-                $container = new Container;
+                $container = new Container();
                 $container->set('service', $first);
                 $container->set('service', $second);
                 $this->assertSame($service2, $container->get('service'));
@@ -82,7 +82,7 @@ class ContainerTest extends TestCase
      */
     public function testHasUnknown()
     {
-        $container = new Container;
+        $container = new Container();
 
         $this->assertFalse($container->has(Service::class));
     }
@@ -94,7 +94,7 @@ class ContainerTest extends TestCase
     {
         $this->expectException(NotFoundException::class);
 
-        $container = new Container;
+        $container = new Container();
         $container->get(Service::class);
     }
 
@@ -105,8 +105,8 @@ class ContainerTest extends TestCase
     {
         $this->expectException(NotFoundException::class);
 
-        $container = new Container;
-        $container->set(Service::class, new Service);
+        $container = new Container();
+        $container->set(Service::class, new Service());
         $container->set(Service::class, null);
         $container->get(Service::class);
     }
@@ -118,8 +118,13 @@ class ContainerTest extends TestCase
     {
         $this->expectException(NotFoundException::class);
 
-        $container = new Container;
-        $container->set(Service::class, function () { return new Service; });
+        $container = new Container();
+        $container->set(
+            Service::class,
+            function () {
+                return new Service();
+            }
+        );
         $container->set(Service::class, null);
         $container->get(Service::class);
     }
@@ -129,12 +134,17 @@ class ContainerTest extends TestCase
      */
     public function testGetOrCreate()
     {
-        $service = new Service;
+        $service = new Service();
 
-        $container = new Container;
+        $container = new Container();
         $this->assertInstanceOf(Service::class, $container->getOrCreate(Service::class));
 
-        $container->set(Service::class, function () use ($service) { return $service; });
+        $container->set(
+            Service::class,
+            function () use ($service) {
+                return $service;
+            }
+        );
         $this->assertSame($service, $container->getOrCreate(Service::class));
     }
 
@@ -144,7 +154,7 @@ class ContainerTest extends TestCase
     public function testShare()
     {
         $closure = function () {
-            return new Service;
+            return new Service();
         };
 
         $container = new Container();
@@ -162,7 +172,7 @@ class ContainerTest extends TestCase
     public function testServiceProvider()
     {
         $container = new Container();
-        $container->register(new ServiceProvider);
+        $container->register(new ServiceProvider());
 
         $this->assertFalse($container->has('boolean'));
         $this->assertFalse($container->has('unspecified'));
@@ -208,7 +218,7 @@ class ContainerTest extends TestCase
      */
     public function testAlias()
     {
-        $container = new Container;
+        $container = new Container();
         $container->alias('db', Service::class);
 
         $this->assertSame(Service::class, $container->resolve('db'));

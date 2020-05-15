@@ -38,6 +38,6 @@ class ServiceConsumer
      */
     public static function create()
     {
-        return new self(new Service);
+        return new self(new Service());
     }
 }

@@ -20,6 +20,6 @@ class Service
      */
     public static function factory()
     {
-        return new static;
+        return new static();
     }
 }

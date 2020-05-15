@@ -22,14 +22,19 @@ class InjectionTest extends TestCase
      */
     public function testWithoutParameters()
     {
-        $container = new Container;
+        $container = new Container();
 
         $this->assertInstanceOf(Service::class, $container->create(Service::class));
         $this->assertInstanceOf(Service::class, $container->call(Service::class . '::factory'));
         $this->assertInstanceOf(Service::class, $container->call([Service::class, 'factory']));
-        $this->assertSame('result', $container->call(function () {
-            return 'result';
-        }));
+        $this->assertSame(
+            'result',
+            $container->call(
+                function () {
+                    return 'result';
+                }
+            )
+        );
         $this->assertSame(PHP_SAPI, $container->call('php_sapi_name'));
     }
 
@@ -38,7 +43,7 @@ class InjectionTest extends TestCase
      */
     public function testObjectParameter()
     {
-        $container = new Container;
+        $container = new Container();
         $container->set(Service::class, new Service());
 
         $consumer = $container->create(ServiceConsumer::class);
@@ -53,7 +58,7 @@ class InjectionTest extends TestCase
      */
     public function testNullableObjectParameter()
     {
-        $container = new Container;
+        $container = new Container();
 
         $consumer = $container->create(ServiceConsumer::class);
 
@@ -66,11 +71,16 @@ class InjectionTest extends TestCase
      */
     public function testDefaultParameterValue()
     {
-        $container = new Container;
+        $container = new Container();
 
-        $this->assertSame('default', $container->call(function ($default = 'default') {
-            return $default;
-        }));
+        $this->assertSame(
+            'default',
+            $container->call(
+                function ($default = 'default') {
+                    return $default;
+                }
+            )
+        );
     }
 
     /**
@@ -78,7 +88,7 @@ class InjectionTest extends TestCase
      */
     public function testDefaultParameterValueInObject()
     {
-        $container = new Container;
+        $container = new Container();
         $invokable = new class () {
             public function __invoke($default = 'default')
             {
@@ -94,10 +104,12 @@ class InjectionTest extends TestCase
      */
     public function testVariadicParameter()
     {
-        $container = new Container;
-        $arguments = $container->call(function (...$variadic) {
-            return count($variadic);
-        });
+        $container = new Container();
+        $arguments = $container->call(
+            function (...$variadic) {
+                return count($variadic);
+            }
+        );
 
         $this->assertSame(0, $arguments);
     }
@@ -109,7 +121,7 @@ class InjectionTest extends TestCase
     {
         $this->expectException(NotFoundException::class);
 
-        $container = new Container;
+        $container = new Container();
         $container->create(__NAMESPACE__ . '\\UnknownClass');
     }
 
@@ -120,7 +132,7 @@ class InjectionTest extends TestCase
     {
         $this->expectException(NotFoundException::class);
 
-        $container = new Container;
+        $container = new Container();
         $container->call(__NAMESPACE__ . '\\unknown_function');
     }
 
@@ -131,9 +143,9 @@ class InjectionTest extends TestCase
     {
         $this->expectException(NotFoundException::class);
 
-        $service = new Service;
+        $service = new Service();
 
-        $container = new Container;
+        $container = new Container();
         $container->call([$service, 'unknownMethod']);
     }
 
@@ -145,7 +157,7 @@ class InjectionTest extends TestCase
         $this->expectException(NotFoundException::class);
         $this->expectExceptionMessage('Argument not found for parameter $unknown in ' . __NAMESPACE__ . '\\unknown');
 
-        $container = new Container;
+        $container = new Container();
         $container->call(__NAMESPACE__ . '\\unknown');
     }
 
@@ -157,9 +169,9 @@ class InjectionTest extends TestCase
         $this->expectException(NotFoundException::class);
         $this->expectExceptionMessage('Argument not found for parameter $unknown in ' . Service::class . '::unknown');
 
-        $service = new Service;
+        $service = new Service();
 
-        $container = new Container;
+        $container = new Container();
         $container->call([$service, 'unknown']);
     }
 
@@ -168,7 +180,7 @@ class InjectionTest extends TestCase
      */
     public function testWithArguments()
     {
-        $container = new Container;
+        $container = new Container();
         $arguments = ['id' => 1, 'name' => 'john'];
 
         $idClosure   = function ($id) {
@@ -181,7 +193,7 @@ class InjectionTest extends TestCase
         $this->assertSame('john', $container->call($nameClosure, $arguments));
         $this->assertSame(1, $container->call($idClosure, $arguments));
 
-        $service  = new Service;
+        $service  = new Service();
         $consumer = $container->create(ServiceConsumer::class, ['service' => $service]);
 
         $this->assertSame($service, $consumer->getService());

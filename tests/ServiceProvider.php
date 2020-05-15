@@ -13,7 +13,7 @@ class ServiceProvider
      */
     public function db(): Service
     {
-        return new Service;
+        return new Service();
     }
 
     /**
@@ -33,8 +33,7 @@ class ServiceProvider
      */
     public function unspecified()
     {
-        return new class
-        {
+        return new class {
         };
     }
 

@@ -166,6 +166,16 @@ class ContainerTest extends TestCase
         $this->assertSame($service1, $service2);
     }
 
+    public function testShareAutoWiring()
+    {
+        $container = new Container();
+        $container->share(Service::class);
+
+        $service1 = $container->getOrCreate(Service::class);
+        $service2 = $container->getOrCreate(Service::class);
+        $this->assertSame($service1, $service2);
+    }
+
     /**
      * Test service provider usage
      */

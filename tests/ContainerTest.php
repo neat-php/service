@@ -166,7 +166,10 @@ class ContainerTest extends TestCase
         $this->assertSame($service1, $service2);
     }
 
-    public function testShareAutoWiring()
+    /**
+     * Auto-wiring should check if a service is shared and when created should set the instance to the container.
+     */
+    public function testAutoWiringChecksSharedServices()
     {
         $container = new Container();
         $container->share(Service::class);
@@ -174,6 +177,31 @@ class ContainerTest extends TestCase
         $service1 = $container->getOrCreate(Service::class);
         $service2 = $container->getOrCreate(Service::class);
         $this->assertSame($service1, $service2);
+    }
+
+    /**
+     * Services that are not shared and are created using auto-wiring should be recreated every call.
+     */
+    public function testAutoWiringCreateANewInstance()
+    {
+        $container = new Container();
+
+        $service1 = $container->getOrCreate(Service::class);
+        $service2 = $container->getOrCreate(Service::class);
+        $this->assertNotSame($service1, $service2);
+    }
+
+    /**
+     * Calling $container->create() should always return a new instance.
+     */
+    public function testCallingCreateCreatesANewInstance()
+    {
+        $container = new Container();
+        $container->share(Service::class);
+
+        $service1 = $container->create(Service::class);
+        $service2 = $container->create(Service::class);
+        $this->assertNotSame($service1, $service2);
     }
 
     /**

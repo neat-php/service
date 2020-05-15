@@ -108,7 +108,12 @@ class Container implements ContainerInterface
             return $this->get($class);
         }
 
-        return $this->create($class);
+        $instance = $this->create($class);
+        if (isset($this->shared[$class])) {
+            $this->set($class, $instance);
+        }
+
+        return $instance;
     }
 
     /**

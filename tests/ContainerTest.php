@@ -272,7 +272,7 @@ class ContainerTest extends TestCase
 
         $extensionCalls = 0;
 
-        $container = new Container;
+        $container = new Container();
         $container->set(Service::class, $original);
         $container->extend(Service::class, function (Service $service) use ($original, $extended, &$extensionCalls): Service {
             $extensionCalls++;
@@ -299,7 +299,7 @@ class ContainerTest extends TestCase
         $factoryCalls   = 0;
         $extensionCalls = 0;
 
-        $container = new Container;
+        $container = new Container();
         $container->set(Service::class, function () use ($original, &$factoryCalls) {
             $factoryCalls++;
 
@@ -330,7 +330,7 @@ class ContainerTest extends TestCase
 
         $extensionCalls = 0;
 
-        $container = new Container;
+        $container = new Container();
         $container->extend(Service::class, function (Service $service) use ($extended, &$extensionCalls): Service {
             $extensionCalls++;
 
@@ -357,7 +357,7 @@ class ContainerTest extends TestCase
         $extension1Calls = 0;
         $extension2Calls = 0;
 
-        $container = new Container;
+        $container = new Container();
         $container->set(Service::class, $original);
         $container->extend(Service::class, function (Service $service) use ($extended1, $original, &$extension1Calls): Service {
             $extension1Calls++;
@@ -384,7 +384,7 @@ class ContainerTest extends TestCase
 
     public function testInvokableClass()
     {
-        $container = new Container;
+        $container = new Container();
         $this->assertSame('test', $container->call(Invokable::class));
     }
 }

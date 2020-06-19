@@ -381,4 +381,10 @@ class ContainerTest extends TestCase
         $this->assertSame(1, $extension1Calls);
         $this->assertSame(1, $extension2Calls);
     }
+
+    public function testInvokableClass()
+    {
+        $container = new Container;
+        $this->assertSame('test', $container->call(Invokable::class));
+    }
 }

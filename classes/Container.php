@@ -364,6 +364,12 @@ class Container implements ContainerInterface
 
             return [$class, $method];
         }
+        if (class_exists($closure) && method_exists($closure, '__invoke')) {
+            /** @var callable $callable */
+            $callable = $this->getOrCreate($closure);
+
+            return $callable;
+        }
 
         return $closure;
     }

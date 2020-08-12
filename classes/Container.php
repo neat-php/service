@@ -188,13 +188,13 @@ class Container implements ContainerInterface
      * Register services from a provider
      *
      * @param object $provider
-     * @throws \ReflectionException
+     * @throws ReflectionException
      */
     public function register($provider)
     {
-        $reflection = new \ReflectionClass($provider);
+        $reflection = new ReflectionClass($provider);
 
-        foreach ($reflection->getMethods(\ReflectionMethod::IS_PUBLIC) as $method) {
+        foreach ($reflection->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
             if ($method->isStatic()) {
                 continue;
             }
@@ -354,12 +354,12 @@ class Container implements ContainerInterface
         if (!is_string($closure)) {
             return $closure;
         }
-        if (strpos($closure, '@') !== false) {
+        if (str_contains($closure, '@')) {
             list($class, $method) = explode('@', $closure);
 
             return [$this->getOrCreate($class), $method];
         }
-        if (strpos($closure, '::') !== false) {
+        if (str_contains($closure, '::')) {
             list($class, $method) = explode('::', $closure);
 
             return [$class, $method];

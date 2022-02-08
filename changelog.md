@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - PhpStorm advanced metadata to support code completion after $container->get()
   or $container->getOrCreate() calls.
+- Support for PHP >=8.0.
+- Typehints.
+
+### Removed
+- Dropped support for PHP <7.2.
 
 ## [0.3.3] - 2020-06-19
 ### Fixed

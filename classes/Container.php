@@ -7,6 +7,7 @@ use Psr\Container\ContainerInterface;
 use ReflectionClass;
 use ReflectionException;
 use ReflectionFunction;
+use ReflectionFunctionAbstract;
 use ReflectionMethod;
 
 /**
@@ -52,12 +53,12 @@ class Container implements ContainerInterface
     /**
      * Has service instance or factory?
      *
-     * @param string $service Class name, interface name or other alias
+     * @param string $id Class name, interface name or other alias
      * @return bool Only true when the service was explicitly set
      */
-    public function has($service)
+    public function has(string $id): bool
     {
-        $class = $this->resolve($service);
+        $class = $this->resolve($id);
 
         return isset($this->instances[$class])
             || isset($this->factories[$class]);
@@ -66,13 +67,13 @@ class Container implements ContainerInterface
     /**
      * Get service instance
      *
-     * @param string $service Class name, interface name or other alias
-     * @return object
+     * @param string $id Class name, interface name or other alias
+     * @return mixed
      * @throws NotFoundException when the service was not explicitly set
      */
-    public function get($service)
+    public function get(string $id)
     {
-        $class = $this->resolve($service);
+        $class = $this->resolve($id);
 
         if (isset($this->instances[$class])) {
             return $this->instances[$class];
@@ -97,10 +98,10 @@ class Container implements ContainerInterface
      * Get or create service instance
      *
      * @param string $service Class name, interface name or other alias
-     * @return object
+     * @return mixed
      * @throws NotFoundException
      */
-    public function getOrCreate($service)
+    public function getOrCreate(string $service)
     {
         $class = $this->resolve($service);
 
@@ -122,7 +123,7 @@ class Container implements ContainerInterface
      * @param string $service Class name, interface name or other alias
      * @return callable
      */
-    public function factory($service): callable
+    public function factory(string $service): callable
     {
         return function () use ($service) {
             return $this->get($service);
@@ -132,10 +133,10 @@ class Container implements ContainerInterface
     /**
      * Set a service instance, factory or class name
      *
-     * @param string                 $service
-     * @param object|callable|string $concrete
+     * @param string $service
+     * @param mixed  $concrete
      */
-    public function set($service, $concrete)
+    public function set(string $service, $concrete): void
     {
         $class = $this->resolve($service);
 
@@ -151,11 +152,11 @@ class Container implements ContainerInterface
     /**
      * Extend a service
      *
-     * @param string   $service
-     * @param callable $extension
-     * @param string   $parameter
+     * @param string          $service
+     * @param callable|string $extension
+     * @param string          $parameter
      */
-    public function extend($service, $extension, $parameter = 'service')
+    public function extend(string $service, $extension, string $parameter = 'service'): void
     {
         $class = $this->resolve($service);
 
@@ -177,7 +178,7 @@ class Container implements ContainerInterface
      *
      * @param string $service
      */
-    public function share($service)
+    public function share(string $service): void
     {
         $class = $this->resolve($service);
 
@@ -188,13 +189,12 @@ class Container implements ContainerInterface
      * Register services from a provider
      *
      * @param object $provider
-     * @throws \ReflectionException
      */
-    public function register($provider)
+    public function register(object $provider): void
     {
-        $reflection = new \ReflectionClass($provider);
+        $reflection = new ReflectionClass($provider);
 
-        foreach ($reflection->getMethods(\ReflectionMethod::IS_PUBLIC) as $method) {
+        foreach ($reflection->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
             if ($method->isStatic()) {
                 continue;
             }
@@ -204,8 +204,7 @@ class Container implements ContainerInterface
                 continue;
             }
 
-            // TODO Just use $return->getName() when PHP 7.0 support is dropped.
-            $class = method_exists($return, 'getName') ? $return->getName() : (string)$return;
+            $class = $return->getName();
 
             $this->classes[$method->name] = $class;
             $this->factories[$class]      = $method->getClosure($provider);
@@ -224,7 +223,7 @@ class Container implements ContainerInterface
      *
      * @param Aliases $provider
      */
-    protected function registerAliases(Aliases $provider)
+    protected function registerAliases(Aliases $provider): void
     {
         foreach ($provider->aliases() as $service => $class) {
             $this->alias($service, $class);
@@ -236,7 +235,7 @@ class Container implements ContainerInterface
      *
      * @param Shares $provider
      */
-    protected function registerShares(Shares $provider)
+    protected function registerShares(Shares $provider): void
     {
         foreach ($provider->shares() as $service) {
             $this->share($service);
@@ -252,7 +251,7 @@ class Container implements ContainerInterface
      * @param string $service
      * @param string $class
      */
-    public function alias($service, $class)
+    public function alias(string $service, string $class): void
     {
         $this->classes[$service] = $class;
     }
@@ -263,7 +262,7 @@ class Container implements ContainerInterface
      * @param string $service
      * @return string
      */
-    public function resolve($service)
+    public function resolve(string $service): string
     {
         return $this->classes[$service] ?? $service;
     }
@@ -271,8 +270,8 @@ class Container implements ContainerInterface
     /**
      * Call the given closure, method or function
      *
-     * @param callable $closure
-     * @param array    $named
+     * @param callable|string $closure
+     * @param array           $named
      * @return mixed
      * @throws NotFoundException
      */
@@ -293,7 +292,7 @@ class Container implements ContainerInterface
      * @return object
      * @throws NotFoundException
      */
-    public function create($class, array $named = [])
+    public function create(string $class, array $named = []): object
     {
         $reflection = $this->getConstructorReflection($class);
         $arguments  = $reflection ? $this->getArguments($reflection, $named) : [];
@@ -309,27 +308,31 @@ class Container implements ContainerInterface
     /**
      * Get arguments for reflected function or method
      *
-     * @param ReflectionFunction|ReflectionMethod $reflection
-     * @param array                               $named
+     * @param ReflectionFunctionAbstract $reflection
+     * @param array                      $named
      * @return array
      * @throws NotFoundException
-     * @noinspection PhpDocMissingThrowsInspection
      */
-    protected function getArguments($reflection, array $named = [])
+    protected function getArguments(ReflectionFunctionAbstract $reflection, array $named = []): array
     {
         $arguments = [];
         foreach ($reflection->getParameters() as $parameter) {
-            $class = $parameter->getClass();
+            $class = null;
+            if ($parameter->getType()) {
+                $class = $parameter->getType()->getName();
+            }
             if (array_key_exists($parameter->name, $named)) {
                 $arguments[] = $named[$parameter->name];
-            } elseif ($class && $this->has($class->name)) {
-                $arguments[] = $this->get($class->name);
+            } elseif ($class && $this->has($class)) {
+                $arguments[] = $this->get($class);
             } elseif ($parameter->isDefaultValueAvailable()) {
                 $arguments[] = $parameter->getDefaultValue();
             } elseif ($class) {
-                $arguments[] = $this->getOrCreate($class->name);
+                $arguments[] = $this->getOrCreate($class);
             } elseif ($parameter->isVariadic()) {
                 break;
+            } elseif ($parameter->isOptional()) {
+                $arguments[] = null;
             } else {
                 throw NotFoundException::forParameter($parameter, $reflection);
             }
@@ -346,7 +349,7 @@ class Container implements ContainerInterface
      * "class::method" format
      *
      * @param callable|string $closure
-     * @return callable
+     * @return array|callable|string
      * @throws NotFoundException
      */
     protected function getCallable($closure)
@@ -355,20 +358,17 @@ class Container implements ContainerInterface
             return $closure;
         }
         if (strpos($closure, '@') !== false) {
-            list($class, $method) = explode('@', $closure);
+            [$class, $method] = explode('@', $closure);
 
             return [$this->getOrCreate($class), $method];
         }
         if (strpos($closure, '::') !== false) {
-            list($class, $method) = explode('::', $closure);
+            [$class, $method] = explode('::', $closure);
 
             return [$class, $method];
         }
         if (class_exists($closure) && method_exists($closure, '__invoke')) {
-            /** @var callable $callable */
-            $callable = $this->getOrCreate($closure);
-
-            return $callable;
+            return $this->getOrCreate($closure);
         }
 
         return $closure;
@@ -377,8 +377,8 @@ class Container implements ContainerInterface
     /**
      * Get callable reflection
      *
-     * @param callable $callable
-     * @return ReflectionFunction|ReflectionMethod
+     * @param array|callable|object|string $callable
+     * @return ReflectionFunctionAbstract
      * @throws NotFoundException
      */
     protected function getCallableReflection($callable)
@@ -404,7 +404,7 @@ class Container implements ContainerInterface
      * @return ReflectionMethod|null
      * @throws NotFoundException
      */
-    protected function getConstructorReflection($class)
+    protected function getConstructorReflection(string $class): ?ReflectionMethod
     {
         try {
             $reflection = new ReflectionClass($class);

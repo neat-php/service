@@ -14,7 +14,7 @@ class ServiceConsumer
     /**
      * ServiceProvider constructor
      *
-     * @param Service $service
+     * @param Service|null $service
      */
     public function __construct(Service $service = null)
     {
@@ -26,7 +26,7 @@ class ServiceConsumer
      *
      * @return Service|null
      */
-    public function getService()
+    public function getService(): ?Service
     {
         return $this->service;
     }
@@ -36,7 +36,7 @@ class ServiceConsumer
      *
      * @return static
      */
-    public static function create()
+    public static function create(): ServiceConsumer
     {
         return new self(new Service());
     }

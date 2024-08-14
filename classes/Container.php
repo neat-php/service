@@ -327,11 +327,11 @@ class Container implements ContainerInterface
                 $arguments[] = $this->get($class);
             } elseif ($parameter->isDefaultValueAvailable()) {
                 $arguments[] = $parameter->getDefaultValue();
-            } elseif ($class) {
+            } elseif ($class && !$parameter->allowsNull()) {
                 $arguments[] = $this->getOrCreate($class);
             } elseif ($parameter->isVariadic()) {
                 break;
-            } elseif ($parameter->isOptional()) {
+            } elseif ($parameter->isOptional() || $class) {
                 $arguments[] = null;
             } else {
                 throw NotFoundException::forParameter($parameter, $reflection);

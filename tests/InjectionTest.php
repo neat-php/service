@@ -8,12 +8,8 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * Function with unknown parameter
- *
- * @param mixed $unknown
  */
-function unknown($unknown)
-{
-}
+function unknown($unknown) {}
 
 class InjectionTest extends TestCase
 {
@@ -66,13 +62,21 @@ class InjectionTest extends TestCase
         $this->assertNull($consumer->getService());
     }
 
+    public function testOptionalObjectParameter()
+    {
+        $container = new Container();
+        $object    = $container->create(OptionalParameter::class);
+        $this->assertInstanceOf(OptionalParameter::class, $object);
+        $this->assertNull($object->getService());
+    }
+
     /**
      * Test object parameter
      */
     public function testUnknownObjectParameter()
     {
         $container = new Container();
-        $service = $container->call(function (Service $service) {
+        $service   = $container->call(function (Service $service) {
             return $service;
         });
 
